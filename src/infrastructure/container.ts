@@ -1,0 +1,60 @@
+/**
+ * Dependency Injection Container
+ *
+ * Wires up all use cases with their concrete repository implementations.
+ * This is the only place in the codebase where infrastructure meets application.
+ * Interfaces (controllers) import from here to get fully-constructed use cases.
+ *
+ * LAYER: infrastructure
+ */
+
+import { prisma } from "@infrastructure/database/prismaClient";
+
+// ─── Repository implementations ──────────────────────────────────────────────
+import { PrismaProductRepository } from "@infrastructure/repositories/PrismaProductRepository";
+import { PrismaStockRepository } from "@infrastructure/repositories/PrismaStockRepository";
+import { PrismaCategoryRepository } from "@infrastructure/repositories/PrismaCategoryRepository";
+
+// ─── Use cases ───────────────────────────────────────────────────────────────
+import { CreateProductUseCase } from "@application/use-cases/product/CreateProductUseCase";
+import { GetProductUseCase } from "@application/use-cases/product/GetProductUseCase";
+import { ListProductsUseCase } from "@application/use-cases/product/ListProductsUseCase";
+import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProductUseCase";
+import { DeleteProductUseCase } from "@application/use-cases/product/DeleteProductUseCase";
+import { AdjustStockUseCase } from "@application/use-cases/stock/AdjustStockUseCase";
+import { GetStockLevelUseCase } from "@application/use-cases/stock/GetStockLevelUseCase";
+import { ListStockLevelsUseCase } from "@application/use-cases/stock/ListStockLevelsUseCase";
+import { ListStockMovementsUseCase } from "@application/use-cases/stock/ListStockMovementsUseCase";
+import { GetStockSummaryUseCase } from "@application/use-cases/stock/GetStockSummaryUseCase";
+import { CreateCategoryUseCase } from "@application/use-cases/category/CreateCategoryUseCase";
+import { ListCategoriesUseCase } from "@application/use-cases/category/ListCategoriesUseCase";
+import { DeleteCategoryUseCase } from "@application/use-cases/category/DeleteCategoryUseCase";
+
+// ─── Instantiate repositories ─────────────────────────────────────────────────
+const productRepository = new PrismaProductRepository(prisma);
+const stockRepository = new PrismaStockRepository(prisma);
+const categoryRepository = new PrismaCategoryRepository(prisma);
+
+// ─── Instantiate use cases (exported for use in interfaces/) ──────────────────
+export const createProductUseCase = new CreateProductUseCase(
+  productRepository,
+  stockRepository,
+  categoryRepository,
+);
+export const getProductUseCase = new GetProductUseCase(productRepository, categoryRepository);
+export const listProductsUseCase = new ListProductsUseCase(productRepository, categoryRepository);
+export const updateProductUseCase = new UpdateProductUseCase(productRepository, categoryRepository);
+export const deleteProductUseCase = new DeleteProductUseCase(productRepository);
+
+export const adjustStockUseCase = new AdjustStockUseCase(productRepository, stockRepository);
+export const getStockLevelUseCase = new GetStockLevelUseCase(productRepository, stockRepository);
+export const listStockLevelsUseCase = new ListStockLevelsUseCase(productRepository, stockRepository);
+export const listStockMovementsUseCase = new ListStockMovementsUseCase(
+  productRepository,
+  stockRepository,
+);
+export const getStockSummaryUseCase = new GetStockSummaryUseCase(productRepository, stockRepository);
+
+export const createCategoryUseCase = new CreateCategoryUseCase(categoryRepository);
+export const listCategoriesUseCase = new ListCategoriesUseCase(categoryRepository);
+export const deleteCategoryUseCase = new DeleteCategoryUseCase(categoryRepository);
