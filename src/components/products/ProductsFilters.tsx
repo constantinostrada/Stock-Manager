@@ -13,7 +13,12 @@ interface ProductsFiltersProps {
   categories: Array<{ id: string; name: string }>;
   stockByProductId?: Record<string, number>;
   movementCountByProductId?: Record<string, number>;
+  initialSearch?: string | undefined;
   onFilteredChange?: (filtered: ProductDTO[]) => void;
+  /** Selection state lifted up to ProductsCatalog — passed through to ProductsTable. */
+  selectedSkus?: Set<string>;
+  onToggleOne?: (sku: string) => void;
+  onToggleAll?: (visibleSkus: string[]) => void;
 }
 
 const DEFAULT_SEARCH = "";
@@ -38,9 +43,13 @@ export function ProductsFilters({
   categories,
   stockByProductId = {},
   movementCountByProductId = {},
+  initialSearch,
   onFilteredChange,
+  selectedSkus,
+  onToggleOne,
+  onToggleAll,
 }: ProductsFiltersProps) {
-  const [search, setSearch] = useState<string>(DEFAULT_SEARCH);
+  const [search, setSearch] = useState<string>(initialSearch ?? DEFAULT_SEARCH);
   const [categoryId, setCategoryId] = useState<string>(DEFAULT_CATEGORY_ID);
   const [stockLevel, setStockLevel] =
     useState<StockLevelFilter>(DEFAULT_STOCK_LEVEL);
@@ -196,6 +205,9 @@ export function ProductsFilters({
           stockByProductId={stockByProductId}
           movementCountByProductId={movementCountByProductId}
           categories={categories}
+          {...(selectedSkus !== undefined ? { selectedSkus } : {})}
+          {...(onToggleOne !== undefined ? { onToggleOne } : {})}
+          {...(onToggleAll !== undefined ? { onToggleAll } : {})}
         />
       )}
     </div>

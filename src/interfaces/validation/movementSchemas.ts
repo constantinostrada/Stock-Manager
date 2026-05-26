@@ -27,3 +27,38 @@ export const registerMovementSchema = z.object({
 });
 
 export type RegisterMovementInput = z.infer<typeof registerMovementSchema>;
+
+/**
+ * T14 — `createMovement` schema for the global "+ Nuevo movimiento" dialog
+ * on /movements. Differs from registerMovementSchema in three ways:
+ *   - tipo also accepts AJUSTE
+ *   - razon is OPTIONAL (empty string → undefined)
+ *   - productId-not-found is a real validation surface (the user picks
+ *     the product, so we must map "producto no existe" to fieldErrors.productId
+ *     in the action layer).
+ */
+export const createMovementSchema = z.object({
+  productId: z.string().min(1, "El producto es obligatorio."),
+  tipo: z.enum(["ENTRADA", "SALIDA", "AJUSTE"], {
+    errorMap: () => ({
+      message: "El tipo debe ser ENTRADA, SALIDA o AJUSTE.",
+    }),
+  }),
+  cantidad: z
+    .number({ invalid_type_error: "La cantidad debe ser un número." })
+    .int("La cantidad debe ser un número entero.")
+    .positive("La cantidad debe ser mayor que cero."),
+  razon: z.preprocess(
+    (v) => {
+      if (typeof v !== "string") return v;
+      const trimmed = v.trim();
+      return trimmed.length === 0 ? undefined : trimmed;
+    },
+    z
+      .string()
+      .max(500, "La razón no puede superar los 500 caracteres.")
+      .optional(),
+  ),
+});
+
+export type CreateMovementInput = z.infer<typeof createMovementSchema>;

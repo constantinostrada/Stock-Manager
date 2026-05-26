@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { DeleteProductButton } from "@/components/products/DeleteProductButton";
@@ -15,6 +16,13 @@ interface ProductsTableProps {
   movementCountByProductId?: Record<string, number>;
   /** Category options for the inline EditProductDialog. */
   categories?: Array<{ id: string; name: string }>;
+  /**
+   * Selection state — when all three of selectedSkus / onToggleOne / onToggleAll
+   * are provided, the table renders an extra leftmost checkbox column.
+   */
+  selectedSkus?: Set<string>;
+  onToggleOne?: (sku: string) => void;
+  onToggleAll?: (visibleSkus: string[]) => void;
 }
 
 export function ProductsTable({
@@ -22,8 +30,30 @@ export function ProductsTable({
   stockByProductId = {},
   movementCountByProductId = {},
   categories = [],
+  selectedSkus,
+  onToggleOne,
+  onToggleAll,
 }: ProductsTableProps) {
   const router = useRouter();
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
+
+  const selectionEnabled =
+    !!selectedSkus && !!onToggleOne && !!onToggleAll;
+
+  const visibleSkus = products.map((p) => p.sku);
+  const selectedCount = selectionEnabled
+    ? visibleSkus.filter((s) => selectedSkus!.has(s)).length
+    : 0;
+  const allSelected =
+    selectionEnabled && visibleSkus.length > 0 && selectedCount === visibleSkus.length;
+  const someSelected =
+    selectionEnabled && selectedCount > 0 && selectedCount < visibleSkus.length;
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = someSelected;
+    }
+  }, [someSelected]);
 
   if (products.length === 0) {
     return (
@@ -39,6 +69,22 @@ export function ProductsTable({
       <table className="w-full text-sm">
         <thead className="bg-muted/50 border-b">
           <tr>
+            {selectionEnabled && (
+              <th
+                className="w-10 px-3 py-3 text-left font-medium"
+                data-testid="select-header-cell"
+              >
+                <input
+                  ref={headerCheckboxRef}
+                  type="checkbox"
+                  data-testid="select-all-checkbox"
+                  aria-label="Seleccionar todos los productos visibles"
+                  checked={allSelected}
+                  onChange={() => onToggleAll!(visibleSkus)}
+                  className="h-4 w-4 cursor-pointer accent-primary"
+                />
+              </th>
+            )}
             <th className="px-4 py-3 text-left font-medium">Product</th>
             <th className="px-4 py-3 text-left font-medium">SKU</th>
             <th className="px-4 py-3 text-left font-medium">Category</th>
@@ -50,12 +96,15 @@ export function ProductsTable({
         <tbody className="divide-y">
           {products.map((product) => {
             const href = `/products/${encodeURIComponent(product.sku)}`;
+            const isSelected =
+              selectionEnabled && selectedSkus!.has(product.sku);
             return (
               <tr
                 key={product.id}
                 data-testid="product-row"
                 data-product-id={product.id}
                 data-product-sku={product.sku}
+                data-selected={isSelected ? "true" : undefined}
                 role="link"
                 tabIndex={0}
                 onClick={() => router.push(href)}
@@ -65,8 +114,27 @@ export function ProductsTable({
                     router.push(href);
                   }
                 }}
-                className="hover:bg-muted/30 cursor-pointer transition-colors focus:bg-muted/40 focus:outline-none"
+                className={`hover:bg-muted/30 cursor-pointer transition-colors focus:bg-muted/40 focus:outline-none ${
+                  isSelected ? "bg-muted/40" : ""
+                }`}
               >
+                {selectionEnabled && (
+                  <td
+                    className="w-10 px-3 py-3"
+                    data-testid="row-select-cell"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      data-testid={`select-row-${product.sku}`}
+                      aria-label={`Seleccionar ${product.name}`}
+                      checked={isSelected}
+                      onChange={() => onToggleOne!(product.sku)}
+                      className="h-4 w-4 cursor-pointer accent-primary"
+                    />
+                  </td>
+                )}
                 <td className="px-4 py-3">
                   <div>
                     <div className="font-medium">{product.name}</div>

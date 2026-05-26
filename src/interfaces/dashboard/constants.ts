@@ -19,3 +19,10 @@ export interface DashboardMetrics {
   valorTotalInventario: number;
   productosConBajoStock: number;
 }
+
+export interface TodaysSummary {
+  entradasCount: number;
+  salidasCount: number;
+  ajustesCount: number;
+  totalValueMoved: number;
+}

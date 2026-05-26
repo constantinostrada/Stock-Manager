@@ -44,6 +44,14 @@ export interface DeleteProductInputDTO {
   id: string;
 }
 
+export interface DeleteProductsBulkInputDTO {
+  skus: string[];
+}
+
+export interface DeleteProductsBulkResultDTO {
+  deletedCount: number;
+}
+
 export interface GetProductInputDTO {
   id: string;
 }

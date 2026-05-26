@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Package2 } from "lucide-react";
+import { NavbarSearch } from "@/components/layout/NavbarSearch";
 
 const navLinks = [
   { href: "/", label: "Dashboard" },
@@ -23,34 +24,37 @@ export function Navbar({ lowStockCount = 0 }: NavbarProps) {
           <Package2 className="text-primary h-5 w-5" />
           <span>Stock Manager</span>
         </Link>
-        <nav aria-label="Primary" className="flex items-center gap-1">
-          {navLinks.map((link) => {
-            const isAlerts = link.id === "alerts";
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-muted-foreground hover:text-foreground relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-                data-testid={isAlerts ? "nav-link-alerts" : undefined}
-                data-has-alerts={isAlerts ? (hasAlerts ? "true" : "false") : undefined}
-                aria-label={
-                  isAlerts && hasAlerts
-                    ? `Alertas (${lowStockCount} con bajo stock)`
-                    : undefined
-                }
-              >
-                {link.label}
-                {isAlerts && hasAlerts ? (
-                  <span
-                    aria-hidden="true"
-                    data-testid="nav-alerts-dot"
-                    className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-600"
-                  />
-                ) : null}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex items-center gap-2">
+          <nav aria-label="Primary" className="flex items-center gap-1">
+            {navLinks.map((link) => {
+              const isAlerts = link.id === "alerts";
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-muted-foreground hover:text-foreground relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                  data-testid={isAlerts ? "nav-link-alerts" : undefined}
+                  data-has-alerts={isAlerts ? (hasAlerts ? "true" : "false") : undefined}
+                  aria-label={
+                    isAlerts && hasAlerts
+                      ? `Alertas (${lowStockCount} con bajo stock)`
+                      : undefined
+                  }
+                >
+                  {link.label}
+                  {isAlerts && hasAlerts ? (
+                    <span
+                      aria-hidden="true"
+                      data-testid="nav-alerts-dot"
+                      className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-600"
+                    />
+                  ) : null}
+                </Link>
+              );
+            })}
+          </nav>
+          <NavbarSearch />
+        </div>
       </div>
     </header>
   );

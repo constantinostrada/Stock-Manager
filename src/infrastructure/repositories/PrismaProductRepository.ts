@@ -15,7 +15,10 @@ import type {
   IProductRepository,
   ProductFilters,
 } from "@domain/repositories/IProductRepository";
-import { ApplicationException } from "@application/exceptions/ApplicationException";
+import {
+  ApplicationException,
+  NotFoundException,
+} from "@application/exceptions/ApplicationException";
 
 export class PrismaProductRepository implements IProductRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -70,6 +73,20 @@ export class PrismaProductRepository implements IProductRepository {
         "DELETE_FAILED",
       );
     }
+  }
+
+  async deleteManyBySkus(skus: string[]): Promise<number> {
+    if (skus.length === 0) return 0;
+    return this.db.$transaction(async (tx) => {
+      const result = await tx.product.deleteMany({
+        where: { sku: { in: skus } },
+      });
+      if (result.count !== skus.length) {
+        // Throwing inside the transaction callback rolls the whole batch back.
+        throw new NotFoundException("Product", skus.join(","));
+      }
+      return result.count;
+    });
   }
 
   async existsBySku(sku: string, excludeId?: string): Promise<boolean> {

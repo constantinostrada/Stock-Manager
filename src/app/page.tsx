@@ -9,8 +9,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MovementsHistoryTable } from "@/components/stock/MovementsHistoryTable";
-import { getDashboardMetrics } from "@interfaces/actions/dashboardActions";
-import type { DashboardMetrics } from "@interfaces/dashboard/constants";
+import {
+  getDashboardMetrics,
+  getTodaysSummary,
+} from "@interfaces/actions/dashboardActions";
+import type {
+  DashboardMetrics,
+  TodaysSummary,
+} from "@interfaces/dashboard/constants";
 import {
   listStockMovementsUseCase,
   listProductsUseCase,
@@ -28,8 +34,9 @@ export function formatInventoryValue(value: number): string {
 }
 
 export default async function DashboardPage() {
-  const [metrics, movements, products] = await Promise.all([
+  const [metrics, todaysSummary, movements, products] = await Promise.all([
     getDashboardMetrics(),
+    getTodaysSummary(),
     listStockMovementsUseCase.execute({}),
     listProductsUseCase.execute(),
   ]);
@@ -51,6 +58,8 @@ export default async function DashboardPage() {
       </div>
 
       <MetricsCards metrics={metrics} />
+
+      <TodaysSummaryCard summary={todaysSummary} />
 
       <section className="space-y-3" data-testid="recent-movements-section">
         <div className="flex items-baseline justify-between">
@@ -131,6 +140,81 @@ function MetricsCards({ metrics }: { metrics: DashboardMetrics }) {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function TodaysSummaryCard({ summary }: { summary: TodaysSummary }) {
+  const hasMovements =
+    summary.entradasCount + summary.salidasCount + summary.ajustesCount > 0;
+
+  return (
+    <Card data-testid="todays-summary-card">
+      <CardHeader>
+        <CardTitle className="text-base font-semibold">
+          Resumen del día
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {hasMovements ? (
+          <div
+            className="grid grid-cols-2 gap-4 md:grid-cols-4"
+            data-testid="todays-summary-grid"
+          >
+            <SummaryStat
+              testId="summary-entradas"
+              label="Entradas"
+              value={summary.entradasCount}
+            />
+            <SummaryStat
+              testId="summary-salidas"
+              label="Salidas"
+              value={summary.salidasCount}
+            />
+            <SummaryStat
+              testId="summary-ajustes"
+              label="Ajustes"
+              value={summary.ajustesCount}
+            />
+            <SummaryStat
+              testId="summary-valor-movido"
+              label="Valor movido"
+              value={formatInventoryValue(summary.totalValueMoved)}
+            />
+          </div>
+        ) : (
+          <div
+            className="text-muted-foreground py-4 text-sm"
+            data-testid="todays-summary-empty-state"
+          >
+            Sin movimientos hoy
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function SummaryStat({
+  testId,
+  label,
+  value,
+}: {
+  testId: string;
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div className="space-y-1" data-testid={testId}>
+      <div className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+        {label}
+      </div>
+      <div
+        className="text-2xl font-bold tabular-nums"
+        data-testid={`${testId}-value`}
+      >
+        {value}
+      </div>
     </div>
   );
 }
