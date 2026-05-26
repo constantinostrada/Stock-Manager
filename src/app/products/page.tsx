@@ -9,7 +9,11 @@ import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductsTable } from "@/components/products/ProductsTable";
 import { NewProductDialog } from "@/components/products/NewProductDialog";
-import { listProductsUseCase, listCategoriesUseCase } from "@infrastructure/container";
+import {
+  listProductsUseCase,
+  listCategoriesUseCase,
+  listStockLevelsUseCase,
+} from "@infrastructure/container";
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -22,14 +26,20 @@ interface ProductsPageProps {
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, stockLevels] = await Promise.all([
     listProductsUseCase.execute({
       name: params.name,
       categoryId: params.categoryId,
       skuContains: params.skuContains,
     }),
     listCategoriesUseCase.execute(),
+    listStockLevelsUseCase.execute(),
   ]);
+
+  const stockByProductId: Record<string, number> = {};
+  for (const level of stockLevels) {
+    stockByProductId[level.productId] = level.quantity;
+  }
 
   return (
     <div className="space-y-6">
@@ -85,7 +95,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </Button>
       </form>
 
-      <ProductsTable products={products} />
+      <ProductsTable products={products} stockByProductId={stockByProductId} />
     </div>
   );
 }

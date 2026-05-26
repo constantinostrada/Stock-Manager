@@ -27,4 +27,13 @@ export interface IStockRepository {
   findMovementById(id: string): Promise<StockMovement | null>;
   findMovements(filters?: StockMovementFilters): Promise<StockMovement[]>;
   saveMovement(movement: StockMovement): Promise<StockMovement>;
+
+  /**
+   * Atomically persists a movement audit record AND its resulting stock level
+   * in a single transaction. Either both writes commit or both roll back.
+   */
+  applyMovement(
+    stockLevel: StockLevel,
+    movement: StockMovement,
+  ): Promise<{ stockLevel: StockLevel; movement: StockMovement }>;
 }

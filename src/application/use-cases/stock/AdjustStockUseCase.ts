@@ -49,7 +49,7 @@ export class AdjustStockUseCase {
       updatedLevel = stockLevel.adjustTo(dto.quantity);
     }
 
-    // Persist the movement audit record
+    // Build the movement audit record
     const movement = StockMovement.create({
       id: generateId(),
       productId: dto.productId,
@@ -60,8 +60,12 @@ export class AdjustStockUseCase {
       createdAt: new Date(),
     });
 
-    await this.stockRepository.saveMovement(movement);
-    const savedLevel = await this.stockRepository.saveStockLevel(updatedLevel);
+    // Atomic write: the audit record + the new level either both commit or both
+    // roll back. Required by the registerMovement Server Action contract.
+    const { stockLevel: savedLevel } = await this.stockRepository.applyMovement(
+      updatedLevel,
+      movement,
+    );
 
     return StockMapper.stockLevelToDTO(savedLevel, product.name, product.sku.value);
   }
