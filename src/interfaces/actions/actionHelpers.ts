@@ -17,14 +17,26 @@ import {
 
 export type ActionResult<T> =
   | { success: true; data: T }
-  | { success: false; error: string; code: string };
+  | {
+      success: false;
+      error: string;
+      code: string;
+      /** Per-field validation errors keyed by Zod field path. */
+      fieldErrors?: Record<string, string>;
+    };
 
 export function ok<T>(data: T): ActionResult<T> {
   return { success: true, data };
 }
 
-export function err<T>(error: string, code = "UNKNOWN_ERROR"): ActionResult<T> {
-  return { success: false, error, code };
+export function err<T>(
+  error: string,
+  code = "UNKNOWN_ERROR",
+  fieldErrors?: Record<string, string>,
+): ActionResult<T> {
+  return fieldErrors
+    ? { success: false, error, code, fieldErrors }
+    : { success: false, error, code };
 }
 
 /**

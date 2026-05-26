@@ -27,6 +27,8 @@ export interface CreateProductInputDTO {
   price: number;
   currency?: string;
   categoryId?: string;
+  /** Initial stock quantity to seed the StockLevel with (default 0). Must be >= 0. */
+  stockInicial?: number;
 }
 
 export interface UpdateProductInputDTO {

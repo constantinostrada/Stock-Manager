@@ -30,9 +30,22 @@ export async function createProduct(
 ): Promise<ActionResult<ProductDTO>> {
   const parsed = createProductSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
+    const flat = parsed.error.flatten();
+    const fieldErrors: Record<string, string> = {};
+    for (const [field, messages] of Object.entries(flat.fieldErrors)) {
+      if (messages && messages.length > 0) fieldErrors[field] = messages[0]!;
+    }
+    const message =
+      Object.values(fieldErrors).join("; ") ||
+      parsed.error.errors.map((e) => e.message).join("; ");
+    return err(message, "VALIDATION_ERROR", fieldErrors);
   }
-  return runAction(() => createProductUseCase.execute(parsed.data));
+  const result = await runAction(() => createProductUseCase.execute(parsed.data));
+  // SKU conflict from the use case maps cleanly to a field-level error.
+  if (!result.success && result.code === "CONFLICT") {
+    return err(result.error, "CONFLICT", { sku: "El SKU ya existe." });
+  }
+  return result;
 }
 
 export async function listProducts(
