@@ -13,11 +13,13 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 
 const getDashboardMetricsMock = vi.fn();
+const getTodaysSummaryMock = vi.fn();
 const listStockMovementsExecute = vi.fn();
 const listProductsExecute = vi.fn();
 
 vi.mock("@interfaces/actions/dashboardActions", () => ({
   getDashboardMetrics: (...args: unknown[]) => getDashboardMetricsMock(...args),
+  getTodaysSummary: (...args: unknown[]) => getTodaysSummaryMock(...args),
 }));
 
 vi.mock("@infrastructure/container", () => ({
@@ -33,8 +35,18 @@ import DashboardPage from "@/app/page";
 
 beforeEach(() => {
   getDashboardMetricsMock.mockReset();
+  getTodaysSummaryMock.mockReset();
   listStockMovementsExecute.mockReset();
   listProductsExecute.mockReset();
+
+  // Default empty summary so existing tests aren't forced to specify one;
+  // T16 added the dependency on `getTodaysSummary` to the page.
+  getTodaysSummaryMock.mockResolvedValue({
+    entradasCount: 0,
+    salidasCount: 0,
+    ajustesCount: 0,
+    totalValueMoved: 0,
+  });
 });
 
 describe("DashboardPage (AC-2 / AC-3)", () => {
