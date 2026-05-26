@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Pencil } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteProductButton } from "@/components/products/DeleteProductButton";
+import { EditProductDialog } from "@/components/products/EditProductDialog";
 import { RegisterMovementDialog } from "@/components/stock/RegisterMovementDialog";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
 
@@ -12,9 +13,15 @@ interface ProductsTableProps {
   products: ProductDTO[];
   /** Map of productId → current stock quantity, used to render the Stock column. */
   stockByProductId?: Record<string, number>;
+  /** Category options for the inline EditProductDialog. */
+  categories?: Array<{ id: string; name: string }>;
 }
 
-export function ProductsTable({ products, stockByProductId = {} }: ProductsTableProps) {
+export function ProductsTable({
+  products,
+  stockByProductId = {},
+  categories = [],
+}: ProductsTableProps) {
   if (products.length === 0) {
     return (
       <div className="text-muted-foreground rounded-lg border border-dashed p-12 text-center">
@@ -101,12 +108,11 @@ export function ProductsTable({ products, stockByProductId = {} }: ProductsTable
                       <span className="sr-only">View</span>
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link href={`/products/${product.id}/edit`}>
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Link>
-                  </Button>
+                  <EditProductDialog
+                    product={product}
+                    currentStock={stockByProductId[product.id] ?? 0}
+                    categories={categories}
+                  />
                   <DeleteProductButton
                     productId={product.id}
                     productName={product.name}

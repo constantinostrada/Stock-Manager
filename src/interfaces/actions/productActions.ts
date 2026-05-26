@@ -70,7 +70,15 @@ export async function updateProduct(
 ): Promise<ActionResult<ProductDTO>> {
   const parsed = updateProductSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
+    const flat = parsed.error.flatten();
+    const fieldErrors: Record<string, string> = {};
+    for (const [field, messages] of Object.entries(flat.fieldErrors)) {
+      if (messages && messages.length > 0) fieldErrors[field] = messages[0]!;
+    }
+    const message =
+      Object.values(fieldErrors).join("; ") ||
+      parsed.error.errors.map((e) => e.message).join("; ");
+    return err(message, "VALIDATION_ERROR", fieldErrors);
   }
   return runAction(() => updateProductUseCase.execute(parsed.data));
 }

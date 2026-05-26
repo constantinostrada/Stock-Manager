@@ -39,22 +39,24 @@ export const createProductSchema = z.object({
 });
 
 export const updateProductSchema = z.object({
-  id: z.string().min(1, "Product id is required."),
+  id: z.string().min(1, "El id del producto es requerido."),
   name: z
     .string()
-    .min(1, "Product name is required.")
-    .max(200)
-    .optional(),
+    .min(1, "El nombre es requerido.")
+    .max(200, "El nombre debe tener como máximo 200 caracteres."),
   description: z
     .string()
-    .max(1000)
+    .max(1000, "La descripción debe tener como máximo 1000 caracteres.")
     .nullable()
     .optional(),
   price: z
-    .number({ invalid_type_error: "Price must be a number." })
-    .min(0)
-    .optional(),
-  currency: z.string().length(3).optional(),
+    .number({ invalid_type_error: "El precio debe ser un número." })
+    .positive("El precio debe ser mayor a 0."),
+  currency: z
+    .string()
+    .length(3, "La moneda debe ser un código ISO de 3 letras.")
+    .optional()
+    .default("USD"),
   categoryId: z.string().nullable().optional(),
 });
 
