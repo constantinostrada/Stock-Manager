@@ -186,6 +186,7 @@ export function ProductsFilters({
         <ProductsTable
           products={filtered}
           stockByProductId={stockByProductId}
+          categories={categories}
         />
       )}
     </div>
