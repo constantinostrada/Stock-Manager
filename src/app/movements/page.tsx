@@ -1,13 +1,13 @@
 /**
  * Movements Page (/movements)
  *
- * Chronological history (DESC) of all stock movements.
- * Columns: Fecha/hora · Producto (nombre + SKU) · Tipo (badge) · Cantidad · Razón.
+ * Chronological history (DESC) of all stock movements, with client-side
+ * filtering by reason / type / product (T11).
  *
  * LAYER: interfaces (Next.js route handler)
  */
 
-import { MovementsHistoryTable } from "@/components/stock/MovementsHistoryTable";
+import { MovementsFilters } from "@/components/stock/MovementsFilters";
 import {
   listStockMovementsUseCase,
   listProductsUseCase,
@@ -25,17 +25,23 @@ export default async function MovementsPage() {
     productSkuById[product.id] = product.sku;
   }
 
+  // AC-3: the Producto select shows only products that have ≥1 movement.
+  const productIdsWithMovement = new Set(movements.map((m) => m.productId));
+  const productsWithMovements = products
+    .filter((p) => productIdsWithMovement.has(p.id))
+    .map((p) => ({ id: p.id, name: p.name, sku: p.sku }));
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Movimientos</h1>
-        <p className="text-muted-foreground mt-1">
-          {movements.length} movimiento{movements.length !== 1 ? "s" : ""} registrado
-          {movements.length !== 1 ? "s" : ""}.
-        </p>
       </div>
 
-      <MovementsHistoryTable movements={movements} productSkuById={productSkuById} />
+      <MovementsFilters
+        movements={movements}
+        products={productsWithMovements}
+        productSkuById={productSkuById}
+      />
     </div>
   );
 }
