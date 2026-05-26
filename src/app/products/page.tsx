@@ -5,9 +5,10 @@
  */
 
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductsTable } from "@/components/products/ProductsTable";
+import { NewProductDialog } from "@/components/products/NewProductDialog";
 import { listProductsUseCase, listCategoriesUseCase } from "@infrastructure/container";
 
 interface ProductsPageProps {
@@ -39,11 +40,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             {products.length} product{products.length !== 1 ? "s" : ""} found
           </p>
         </div>
-        <Button asChild>
-          <Link href="/products/new">
-            <Plus className="mr-2 h-4 w-4" /> Add Product
-          </Link>
-        </Button>
+        <NewProductDialog
+          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+        />
       </div>
 
       {/* Search / filter bar */}

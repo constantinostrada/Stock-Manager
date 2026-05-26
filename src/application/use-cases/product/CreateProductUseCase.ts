@@ -58,11 +58,12 @@ export class CreateProductUseCase {
 
     const saved = await this.productRepository.save(product);
 
-    // Initialise stock level at zero
+    // Initialise stock level with provided opening quantity (defaults to 0).
+    // StockLevel.create enforces quantity >= 0 at the domain layer.
     const stockLevel = StockLevel.create({
       id: generateId(),
       productId: saved.id,
-      quantity: 0,
+      quantity: dto.stockInicial ?? 0,
       minQuantity: 0,
       updatedAt: now,
     });

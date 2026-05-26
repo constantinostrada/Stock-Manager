@@ -12,25 +12,30 @@ import { z } from "zod";
 export const createProductSchema = z.object({
   name: z
     .string()
-    .min(1, "Product name is required.")
-    .max(200, "Product name must be at most 200 characters."),
+    .min(1, "El nombre es requerido.")
+    .max(200, "El nombre debe tener como máximo 200 caracteres."),
   description: z
     .string()
-    .max(1000, "Description must be at most 1000 characters.")
+    .max(1000, "La descripción debe tener como máximo 1000 caracteres.")
     .optional(),
   sku: z
     .string()
-    .min(2, "SKU must be at least 2 characters.")
-    .max(50, "SKU must be at most 50 characters."),
+    .min(2, "El SKU debe tener al menos 2 caracteres.")
+    .max(50, "El SKU debe tener como máximo 50 caracteres."),
   price: z
-    .number({ invalid_type_error: "Price must be a number." })
-    .min(0, "Price cannot be negative."),
+    .number({ invalid_type_error: "El precio debe ser un número." })
+    .positive("El precio debe ser mayor a 0."),
   currency: z
     .string()
-    .length(3, "Currency must be a 3-letter ISO code.")
+    .length(3, "La moneda debe ser un código ISO de 3 letras.")
     .optional()
     .default("USD"),
   categoryId: z.string().optional(),
+  stockInicial: z
+    .number({ invalid_type_error: "El stock inicial debe ser un número." })
+    .int("El stock inicial debe ser un número entero.")
+    .min(0, "El stock inicial no puede ser negativo.")
+    .default(0),
 });
 
 export const updateProductSchema = z.object({
