@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { DeleteProductButton } from "@/components/products/DeleteProductButton";
 import { EditProductDialog } from "@/components/products/EditProductDialog";
@@ -13,6 +11,8 @@ interface ProductsTableProps {
   products: ProductDTO[];
   /** Map of productId → current stock quantity, used to render the Stock column. */
   stockByProductId?: Record<string, number>;
+  /** Map of productId → count of stock movements, used by DeleteProductButton's confirmation message. */
+  movementCountByProductId?: Record<string, number>;
   /** Category options for the inline EditProductDialog. */
   categories?: Array<{ id: string; name: string }>;
 }
@@ -20,8 +20,11 @@ interface ProductsTableProps {
 export function ProductsTable({
   products,
   stockByProductId = {},
+  movementCountByProductId = {},
   categories = [],
 }: ProductsTableProps) {
+  const router = useRouter();
+
   if (products.length === 0) {
     return (
       <div className="text-muted-foreground rounded-lg border border-dashed p-12 text-center">
@@ -45,83 +48,91 @@ export function ProductsTable({
           </tr>
         </thead>
         <tbody className="divide-y">
-          {products.map((product) => (
-            <tr
-              key={product.id}
-              data-testid="product-row"
-              data-product-id={product.id}
-              className="hover:bg-muted/30 transition-colors"
-            >
-              <td className="px-4 py-3">
-                <div>
-                  <Link
-                    href={`/products/${product.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {product.name}
-                  </Link>
-                  {product.description && (
-                    <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
-                      {product.description}
-                    </p>
-                  )}
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
-                  {product.sku}
-                </code>
-              </td>
-              <td className="px-4 py-3">
-                {product.categoryName ? (
-                  <Badge variant="secondary">{product.categoryName}</Badge>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </td>
-              <td
-                className="px-4 py-3 text-right font-mono tabular-nums"
-                data-testid="stock-cell"
+          {products.map((product) => {
+            const href = `/products/${encodeURIComponent(product.sku)}`;
+            return (
+              <tr
+                key={product.id}
+                data-testid="product-row"
+                data-product-id={product.id}
+                data-product-sku={product.sku}
+                role="link"
+                tabIndex={0}
+                onClick={() => router.push(href)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(href);
+                  }
+                }}
+                className="hover:bg-muted/30 cursor-pointer transition-colors focus:bg-muted/40 focus:outline-none"
               >
-                {stockByProductId[product.id] ?? 0}
-              </td>
-              <td className="px-4 py-3 text-right font-mono">
-                {product.currency} {product.price.toFixed(2)}
-              </td>
-              <td className="px-4 py-3 text-right">
-                <div className="flex items-center justify-end gap-1">
-                  <RegisterMovementDialog
-                    productId={product.id}
-                    productName={product.name}
-                    productSku={product.sku}
-                    tipo="ENTRADA"
-                  />
-                  <RegisterMovementDialog
-                    productId={product.id}
-                    productName={product.name}
-                    productSku={product.sku}
-                    tipo="SALIDA"
-                  />
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link href={`/products/${product.id}`}>
-                      <Eye className="h-4 w-4" />
-                      <span className="sr-only">View</span>
-                    </Link>
-                  </Button>
-                  <EditProductDialog
-                    product={product}
-                    currentStock={stockByProductId[product.id] ?? 0}
-                    categories={categories}
-                  />
-                  <DeleteProductButton
-                    productId={product.id}
-                    productName={product.name}
-                    iconOnly
-                  />
-                </div>
-              </td>
-            </tr>
-          ))}
+                <td className="px-4 py-3">
+                  <div>
+                    <div className="font-medium">{product.name}</div>
+                    {product.description && (
+                      <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
+                        {product.description}
+                      </p>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
+                    {product.sku}
+                  </code>
+                </td>
+                <td className="px-4 py-3">
+                  {product.categoryName ? (
+                    <Badge variant="secondary">{product.categoryName}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
+                <td
+                  className="px-4 py-3 text-right font-mono tabular-nums"
+                  data-testid="stock-cell"
+                >
+                  {stockByProductId[product.id] ?? 0}
+                </td>
+                <td className="px-4 py-3 text-right font-mono">
+                  {product.currency} {product.price.toFixed(2)}
+                </td>
+                <td
+                  className="px-4 py-3 text-right"
+                  data-testid="row-actions-cell"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    <RegisterMovementDialog
+                      productId={product.id}
+                      productName={product.name}
+                      productSku={product.sku}
+                      tipo="ENTRADA"
+                    />
+                    <RegisterMovementDialog
+                      productId={product.id}
+                      productName={product.name}
+                      productSku={product.sku}
+                      tipo="SALIDA"
+                    />
+                    <EditProductDialog
+                      product={product}
+                      currentStock={stockByProductId[product.id] ?? 0}
+                      categories={categories}
+                    />
+                    <DeleteProductButton
+                      productId={product.id}
+                      productName={product.name}
+                      productSku={product.sku}
+                      movementCount={movementCountByProductId[product.id] ?? 0}
+                    />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

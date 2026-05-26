@@ -2,23 +2,24 @@
  * Products List Page (/products)
  *
  * Server Component — fetches product data directly via use case and hands it
- * to the client-side <ProductsFilters /> component, which does all the
- * search / category / stock-level filtering in the browser (no round-trip).
+ * to the client-side <ProductsCatalog /> wrapper, which renders the header
+ * (title + Export CSV + New product) and the filter / table client UI.
  */
 
-import { NewProductDialog } from "@/components/products/NewProductDialog";
-import { ProductsFilters } from "@/components/products/ProductsFilters";
+import { ProductsCatalog } from "@/components/products/ProductsCatalog";
 import {
   listProductsUseCase,
   listCategoriesUseCase,
   listStockLevelsUseCase,
+  listStockMovementsUseCase,
 } from "@infrastructure/container";
 
 export default async function ProductsPage() {
-  const [products, categories, stockLevels] = await Promise.all([
+  const [products, categories, stockLevels, movements] = await Promise.all([
     listProductsUseCase.execute({}),
     listCategoriesUseCase.execute(),
     listStockLevelsUseCase.execute(),
+    listStockMovementsUseCase.execute({}),
   ]);
 
   const stockByProductId: Record<string, number> = {};
@@ -26,22 +27,20 @@ export default async function ProductsPage() {
     stockByProductId[level.productId] = level.quantity;
   }
 
+  const movementCountByProductId: Record<string, number> = {};
+  for (const movement of movements) {
+    movementCountByProductId[movement.productId] =
+      (movementCountByProductId[movement.productId] ?? 0) + 1;
+  }
+
   const categoryOptions = categories.map((c) => ({ id: c.id, name: c.name }));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between" data-testid="products-header">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-        </div>
-        <NewProductDialog categories={categoryOptions} />
-      </div>
-
-      <ProductsFilters
-        products={products}
-        categories={categoryOptions}
-        stockByProductId={stockByProductId}
-      />
-    </div>
+    <ProductsCatalog
+      products={products}
+      categories={categoryOptions}
+      stockByProductId={stockByProductId}
+      movementCountByProductId={movementCountByProductId}
+    />
   );
 }

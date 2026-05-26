@@ -13,6 +13,7 @@ import {
   createProductUseCase,
   listProductsUseCase,
   getProductUseCase,
+  getProductBySkuUseCase,
   updateProductUseCase,
   deleteProductUseCase,
 } from "@infrastructure/container";
@@ -24,6 +25,7 @@ import {
 } from "@interfaces/validation/productSchemas";
 import { runAction, err, type ActionResult } from "@interfaces/actions/actionHelpers";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
+import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
 
 export async function createProduct(
   rawInput: unknown,
@@ -65,6 +67,12 @@ export async function getProduct(
   return runAction(() => getProductUseCase.execute(parsed));
 }
 
+export async function getProductBySku(
+  sku: string,
+): Promise<ActionResult<GetProductBySkuResultDTO>> {
+  return runAction(() => getProductBySkuUseCase.execute({ sku }));
+}
+
 export async function updateProduct(
   rawInput: unknown,
 ): Promise<ActionResult<ProductDTO>> {
@@ -90,5 +98,9 @@ export async function deleteProduct(
   if (!parsed.success) {
     return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
   }
-  return runAction(() => deleteProductUseCase.execute(parsed.data));
+  const result = await runAction(() => deleteProductUseCase.execute(parsed.data));
+  if (!result.success && result.code === "NOT_FOUND") {
+    return err("Producto no encontrado", "NOT_FOUND");
+  }
+  return result;
 }
