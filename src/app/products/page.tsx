@@ -2,12 +2,11 @@
  * Products List Page (/products)
  *
  * Server Component — fetches product data directly via use case and hands it
- * to the client-side <ProductsFilters /> component, which does all the
- * search / category / stock-level filtering in the browser (no round-trip).
+ * to the client-side <ProductsCatalog /> wrapper, which renders the header
+ * (title + Export CSV + New product) and the filter / table client UI.
  */
 
-import { NewProductDialog } from "@/components/products/NewProductDialog";
-import { ProductsFilters } from "@/components/products/ProductsFilters";
+import { ProductsCatalog } from "@/components/products/ProductsCatalog";
 import {
   listProductsUseCase,
   listCategoriesUseCase,
@@ -29,19 +28,10 @@ export default async function ProductsPage() {
   const categoryOptions = categories.map((c) => ({ id: c.id, name: c.name }));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between" data-testid="products-header">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-        </div>
-        <NewProductDialog categories={categoryOptions} />
-      </div>
-
-      <ProductsFilters
-        products={products}
-        categories={categoryOptions}
-        stockByProductId={stockByProductId}
-      />
-    </div>
+    <ProductsCatalog
+      products={products}
+      categories={categoryOptions}
+      stockByProductId={stockByProductId}
+    />
   );
 }

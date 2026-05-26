@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductsTable } from "@/components/products/ProductsTable";
@@ -12,6 +12,7 @@ interface ProductsFiltersProps {
   products: ProductDTO[];
   categories: Array<{ id: string; name: string }>;
   stockByProductId?: Record<string, number>;
+  onFilteredChange?: (filtered: ProductDTO[]) => void;
 }
 
 const DEFAULT_SEARCH = "";
@@ -35,6 +36,7 @@ export function ProductsFilters({
   products,
   categories,
   stockByProductId = {},
+  onFilteredChange,
 }: ProductsFiltersProps) {
   const [search, setSearch] = useState<string>(DEFAULT_SEARCH);
   const [categoryId, setCategoryId] = useState<string>(DEFAULT_CATEGORY_ID);
@@ -56,6 +58,10 @@ export function ProductsFilters({
       return true;
     });
   }, [products, search, categoryId, stockLevel, stockByProductId]);
+
+  useEffect(() => {
+    onFilteredChange?.(filtered);
+  }, [filtered, onFilteredChange]);
 
   const searchActive = search.trim().length > 0;
   const categoryActive = categoryId !== DEFAULT_CATEGORY_ID;
