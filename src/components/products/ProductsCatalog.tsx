@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { BulkDeleteBar } from "@/components/products/BulkDeleteBar";
 import { ExportProductsButton } from "@/components/products/ExportProductsButton";
 import { NewProductDialog } from "@/components/products/NewProductDialog";
 import { ProductsFilters } from "@/components/products/ProductsFilters";
@@ -22,13 +23,43 @@ export function ProductsCatalog({
   initialSearch,
 }: ProductsCatalogProps) {
   const [filtered, setFiltered] = useState<ProductDTO[]>(products);
+  const [selectedSkus, setSelectedSkus] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
 
   const handleFilteredChange = useCallback((next: ProductDTO[]) => {
     setFiltered(next);
   }, []);
 
+  const handleToggleOne = useCallback((sku: string) => {
+    setSelectedSkus((prev) => {
+      const next = new Set(prev);
+      if (next.has(sku)) next.delete(sku);
+      else next.add(sku);
+      return next;
+    });
+  }, []);
+
+  const handleToggleAll = useCallback((visibleSkus: string[]) => {
+    setSelectedSkus((prev) => {
+      const allSelected =
+        visibleSkus.length > 0 && visibleSkus.every((s) => prev.has(s));
+      const next = new Set(prev);
+      if (allSelected) {
+        for (const sku of visibleSkus) next.delete(sku);
+      } else {
+        for (const sku of visibleSkus) next.add(sku);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleClear = useCallback(() => {
+    setSelectedSkus(new Set<string>());
+  }, []);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       <div
         className="flex items-center justify-between"
         data-testid="products-header"
@@ -52,6 +83,14 @@ export function ProductsCatalog({
         movementCountByProductId={movementCountByProductId}
         initialSearch={initialSearch}
         onFilteredChange={handleFilteredChange}
+        selectedSkus={selectedSkus}
+        onToggleOne={handleToggleOne}
+        onToggleAll={handleToggleAll}
+      />
+
+      <BulkDeleteBar
+        selectedSkus={Array.from(selectedSkus)}
+        onClear={handleClear}
       />
     </div>
   );

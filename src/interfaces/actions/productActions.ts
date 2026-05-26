@@ -16,15 +16,20 @@ import {
   getProductBySkuUseCase,
   updateProductUseCase,
   deleteProductUseCase,
+  deleteProductsBulkUseCase,
 } from "@infrastructure/container";
 import {
   createProductSchema,
   updateProductSchema,
   deleteProductSchema,
+  deleteProductsBulkSchema,
   listProductsSchema,
 } from "@interfaces/validation/productSchemas";
 import { runAction, err, type ActionResult } from "@interfaces/actions/actionHelpers";
-import type { ProductDTO } from "@application/dtos/ProductDTO";
+import type {
+  ProductDTO,
+  DeleteProductsBulkResultDTO,
+} from "@application/dtos/ProductDTO";
 import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
 
 export async function createProduct(
@@ -101,6 +106,28 @@ export async function deleteProduct(
   const result = await runAction(() => deleteProductUseCase.execute(parsed.data));
   if (!result.success && result.code === "NOT_FOUND") {
     return err("Producto no encontrado", "NOT_FOUND");
+  }
+  return result;
+}
+
+export async function deleteProductsBulk(
+  rawInput: unknown,
+): Promise<ActionResult<DeleteProductsBulkResultDTO>> {
+  const parsed = deleteProductsBulkSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return err(
+      parsed.error.errors.map((e) => e.message).join("; "),
+      "VALIDATION_ERROR",
+    );
+  }
+  const result = await runAction(() =>
+    deleteProductsBulkUseCase.execute(parsed.data),
+  );
+  if (!result.success && result.code === "NOT_FOUND") {
+    return err(
+      "Algunos productos no se encontraron y la operación fue cancelada.",
+      "NOT_FOUND",
+    );
   }
   return result;
 }

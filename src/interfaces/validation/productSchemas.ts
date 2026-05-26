@@ -64,6 +64,12 @@ export const deleteProductSchema = z.object({
   id: z.string().min(1, "Product id is required."),
 });
 
+export const deleteProductsBulkSchema = z.object({
+  skus: z
+    .array(z.string().min(1, "El SKU no puede estar vacío."))
+    .min(1, "Debe seleccionar al menos un producto."),
+});
+
 export const getProductSchema = z.object({
   id: z.string().min(1, "Product id is required."),
 });
@@ -77,4 +83,5 @@ export const listProductsSchema = z.object({
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type DeleteProductInput = z.infer<typeof deleteProductSchema>;
+export type DeleteProductsBulkInput = z.infer<typeof deleteProductsBulkSchema>;
 export type ListProductsInput = z.infer<typeof listProductsSchema>;

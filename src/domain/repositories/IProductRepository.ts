@@ -23,5 +23,11 @@ export interface IProductRepository {
   save(product: Product): Promise<Product>;
   update(product: Product): Promise<Product>;
   delete(id: string): Promise<void>;
+  /**
+   * Deletes every product whose SKU is in `skus` inside a single transaction.
+   * If any of the requested SKUs is not found, the whole batch is rolled back
+   * and a NotFoundException is raised. Returns the count of deleted rows.
+   */
+  deleteManyBySkus(skus: string[]): Promise<number>;
   existsBySku(sku: string, excludeId?: string): Promise<boolean>;
 }
