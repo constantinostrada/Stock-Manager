@@ -14,13 +14,21 @@ import {
   listStockMovementsUseCase,
 } from "@infrastructure/container";
 
-export default async function ProductsPage() {
-  const [products, categories, stockLevels, movements] = await Promise.all([
-    listProductsUseCase.execute({}),
-    listCategoriesUseCase.execute(),
-    listStockLevelsUseCase.execute(),
-    listStockMovementsUseCase.execute({}),
-  ]);
+interface ProductsPageProps {
+  searchParams: Promise<{ q?: string }>;
+}
+
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
+  const [params, products, categories, stockLevels, movements] =
+    await Promise.all([
+      searchParams,
+      listProductsUseCase.execute({}),
+      listCategoriesUseCase.execute(),
+      listStockLevelsUseCase.execute(),
+      listStockMovementsUseCase.execute({}),
+    ]);
 
   const stockByProductId: Record<string, number> = {};
   for (const level of stockLevels) {
@@ -41,6 +49,7 @@ export default async function ProductsPage() {
       categories={categoryOptions}
       stockByProductId={stockByProductId}
       movementCountByProductId={movementCountByProductId}
+      initialSearch={params.q ?? ""}
     />
   );
 }

@@ -11,6 +11,7 @@ interface ProductsCatalogProps {
   categories: Array<{ id: string; name: string }>;
   stockByProductId?: Record<string, number>;
   movementCountByProductId?: Record<string, number>;
+  initialSearch?: string | undefined;
 }
 
 export function ProductsCatalog({
@@ -18,6 +19,7 @@ export function ProductsCatalog({
   categories,
   stockByProductId = {},
   movementCountByProductId = {},
+  initialSearch,
 }: ProductsCatalogProps) {
   const [filtered, setFiltered] = useState<ProductDTO[]>(products);
 
@@ -48,6 +50,7 @@ export function ProductsCatalog({
         categories={categories}
         stockByProductId={stockByProductId}
         movementCountByProductId={movementCountByProductId}
+        initialSearch={initialSearch}
         onFilteredChange={handleFilteredChange}
       />
     </div>
