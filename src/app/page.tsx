@@ -1,194 +1,136 @@
 /**
  * Dashboard Page (/)
  *
- * Displays a high-level inventory summary with quick-access navigation cards.
- * Data is fetched server-side via use cases called directly (Server Component).
+ * Three metric cards (Total productos / Valor inventario / Bajo stock) plus
+ * the last 5 stock movements. Server Component — no client interactivity.
+ *
+ * LAYER: interfaces (Next.js route handler)
  */
 
-import Link from "next/link";
-import {
-  Package,
-  AlertTriangle,
-  TrendingDown,
-  DollarSign,
-  ArrowRight,
-} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { getStockSummaryUseCase, listStockLevelsUseCase } from "@infrastructure/container";
+import { MovementsHistoryTable } from "@/components/stock/MovementsHistoryTable";
+import { getDashboardMetrics } from "@interfaces/actions/dashboardActions";
+import type { DashboardMetrics } from "@interfaces/dashboard/constants";
+import {
+  listStockMovementsUseCase,
+  listProductsUseCase,
+} from "@infrastructure/container";
+
+const CURRENCY_FORMATTER = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "ARS",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export function formatInventoryValue(value: number): string {
+  return CURRENCY_FORMATTER.format(value);
+}
 
 export default async function DashboardPage() {
-  const [summaryResult, lowStockResult] = await Promise.allSettled([
-    getStockSummaryUseCase.execute(),
-    listStockLevelsUseCase.execute({ lowStockOnly: true }),
+  const [metrics, movements, products] = await Promise.all([
+    getDashboardMetrics(),
+    listStockMovementsUseCase.execute({}),
+    listProductsUseCase.execute(),
   ]);
 
-  const summary =
-    summaryResult.status === "fulfilled"
-      ? summaryResult.value
-      : { totalProducts: 0, outOfStockCount: 0, lowStockCount: 0, totalInventoryValue: 0, currency: "USD" };
+  const productSkuById: Record<string, string> = {};
+  for (const product of products) {
+    productSkuById[product.id] = product.sku;
+  }
 
-  const lowStockItems =
-    lowStockResult.status === "fulfilled" ? lowStockResult.value : [];
+  const recentMovements = movements.slice(0, 5);
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
-          Overview of your inventory and stock levels.
+          Resumen general del inventario.
         </p>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.totalProducts}</div>
-            <p className="text-muted-foreground text-xs">Active SKUs in system</p>
-          </CardContent>
-        </Card>
+      <MetricsCards metrics={metrics} />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-destructive text-2xl font-bold">
-              {summary.outOfStockCount}
-            </div>
-            <p className="text-muted-foreground text-xs">Products needing restock</p>
-          </CardContent>
-        </Card>
+      <section className="space-y-3" data-testid="recent-movements-section">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-xl font-semibold tracking-tight">
+            Últimos movimientos
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            {recentMovements.length} de {movements.length}
+          </p>
+        </div>
+        <MovementsHistoryTable
+          movements={recentMovements}
+          productSkuById={productSkuById}
+        />
+      </section>
+    </div>
+  );
+}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-            <TrendingDown className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">
-              {summary.lowStockCount}
-            </div>
-            <p className="text-muted-foreground text-xs">Below minimum threshold</p>
-          </CardContent>
-        </Card>
+function MetricsCards({ metrics }: { metrics: DashboardMetrics }) {
+  const bajoStockAlert = metrics.productosConBajoStock > 0;
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-            <DollarSign className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: summary.currency,
-              }).format(summary.totalInventoryValue)}
-            </div>
-            <p className="text-muted-foreground text-xs">Total stock value at cost</p>
-          </CardContent>
-        </Card>
-      </div>
+  return (
+    <div
+      className="grid gap-4 md:grid-cols-3"
+      data-testid="dashboard-metrics-cards"
+    >
+      <Card data-testid="metric-total-productos">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            <span aria-hidden="true">📦</span> Total productos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold tabular-nums">
+            {metrics.totalProductos}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Low stock alert table */}
-      {lowStockItems.length > 0 && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">⚠️ Attention Required</CardTitle>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/stock">
-                View all stock <ArrowRight className="ml-1 h-3 w-3" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {lowStockItems.map((item) => (
-                <div
-                  key={item.productId}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{item.productName}</p>
-                    <p className="text-muted-foreground text-xs">{item.productSku}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-muted-foreground text-sm">
-                      {item.quantity} / {item.minQuantity} min
-                    </span>
-                    <Badge
-                      variant={item.isOutOfStock ? "destructive" : "outline"}
-                      className={
-                        !item.isOutOfStock
-                          ? "border-yellow-500 text-yellow-600"
-                          : ""
-                      }
-                    >
-                      {item.isOutOfStock ? "Out of Stock" : "Low Stock"}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card data-testid="metric-valor-inventario">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            <span aria-hidden="true">💰</span> Valor inventario
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            className="text-3xl font-bold tabular-nums"
+            data-testid="valor-inventario-value"
+          >
+            {formatInventoryValue(metrics.valorTotalInventario)}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Quick actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="hover:bg-accent/50 transition-colors">
-          <CardContent className="pt-6">
-            <Link href="/products/new" className="flex items-center gap-3">
-              <div className="bg-primary/10 rounded-lg p-2">
-                <Package className="text-primary h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-medium">Add Product</p>
-                <p className="text-muted-foreground text-sm">Register a new SKU</p>
-              </div>
-              <ArrowRight className="text-muted-foreground ml-auto h-4 w-4" />
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:bg-accent/50 transition-colors">
-          <CardContent className="pt-6">
-            <Link href="/stock/adjust" className="flex items-center gap-3">
-              <div className="rounded-lg bg-green-100 p-2">
-                <TrendingDown className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium">Adjust Stock</p>
-                <p className="text-muted-foreground text-sm">Record a movement</p>
-              </div>
-              <ArrowRight className="text-muted-foreground ml-auto h-4 w-4" />
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:bg-accent/50 transition-colors">
-          <CardContent className="pt-6">
-            <Link href="/stock/movements" className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-100 p-2">
-                <DollarSign className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="font-medium">Movement History</p>
-                <p className="text-muted-foreground text-sm">View all movements</p>
-              </div>
-              <ArrowRight className="text-muted-foreground ml-auto h-4 w-4" />
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <Card
+        data-testid="metric-bajo-stock"
+        data-alert={bajoStockAlert ? "true" : "false"}
+        className={
+          bajoStockAlert ? "border-destructive/40 bg-destructive/5" : undefined
+        }
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            <span aria-hidden="true">⚠️</span> Bajo stock
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            className={
+              "text-3xl font-bold tabular-nums " +
+              (bajoStockAlert ? "text-destructive" : "")
+            }
+            data-testid="bajo-stock-value"
+          >
+            {metrics.productosConBajoStock}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
