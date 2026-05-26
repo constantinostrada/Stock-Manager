@@ -13,6 +13,7 @@ import {
   createProductUseCase,
   listProductsUseCase,
   getProductUseCase,
+  getProductBySkuUseCase,
   updateProductUseCase,
   deleteProductUseCase,
 } from "@infrastructure/container";
@@ -24,6 +25,7 @@ import {
 } from "@interfaces/validation/productSchemas";
 import { runAction, err, type ActionResult } from "@interfaces/actions/actionHelpers";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
+import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
 
 export async function createProduct(
   rawInput: unknown,
@@ -63,6 +65,12 @@ export async function getProduct(
 ): Promise<ActionResult<ProductDTO>> {
   const parsed = { id };
   return runAction(() => getProductUseCase.execute(parsed));
+}
+
+export async function getProductBySku(
+  sku: string,
+): Promise<ActionResult<GetProductBySkuResultDTO>> {
+  return runAction(() => getProductBySkuUseCase.execute({ sku }));
 }
 
 export async function updateProduct(

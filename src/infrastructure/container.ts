@@ -18,6 +18,7 @@ import { PrismaCategoryRepository } from "@infrastructure/repositories/PrismaCat
 // ─── Use cases ───────────────────────────────────────────────────────────────
 import { CreateProductUseCase } from "@application/use-cases/product/CreateProductUseCase";
 import { GetProductUseCase } from "@application/use-cases/product/GetProductUseCase";
+import { GetProductBySkuUseCase } from "@application/use-cases/product/GetProductBySkuUseCase";
 import { ListProductsUseCase } from "@application/use-cases/product/ListProductsUseCase";
 import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProductUseCase";
 import { DeleteProductUseCase } from "@application/use-cases/product/DeleteProductUseCase";
@@ -42,6 +43,11 @@ export const createProductUseCase = new CreateProductUseCase(
   categoryRepository,
 );
 export const getProductUseCase = new GetProductUseCase(productRepository, categoryRepository);
+export const getProductBySkuUseCase = new GetProductBySkuUseCase(
+  productRepository,
+  stockRepository,
+  categoryRepository,
+);
 export const listProductsUseCase = new ListProductsUseCase(productRepository, categoryRepository);
 export const updateProductUseCase = new UpdateProductUseCase(productRepository, categoryRepository);
 export const deleteProductUseCase = new DeleteProductUseCase(productRepository);
