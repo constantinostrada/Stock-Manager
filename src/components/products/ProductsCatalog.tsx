@@ -10,12 +10,14 @@ interface ProductsCatalogProps {
   products: ProductDTO[];
   categories: Array<{ id: string; name: string }>;
   stockByProductId?: Record<string, number>;
+  movementCountByProductId?: Record<string, number>;
 }
 
 export function ProductsCatalog({
   products,
   categories,
   stockByProductId = {},
+  movementCountByProductId = {},
 }: ProductsCatalogProps) {
   const [filtered, setFiltered] = useState<ProductDTO[]>(products);
 
@@ -45,6 +47,7 @@ export function ProductsCatalog({
         products={products}
         categories={categories}
         stockByProductId={stockByProductId}
+        movementCountByProductId={movementCountByProductId}
         onFilteredChange={handleFilteredChange}
       />
     </div>

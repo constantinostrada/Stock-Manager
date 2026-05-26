@@ -98,5 +98,9 @@ export async function deleteProduct(
   if (!parsed.success) {
     return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
   }
-  return runAction(() => deleteProductUseCase.execute(parsed.data));
+  const result = await runAction(() => deleteProductUseCase.execute(parsed.data));
+  if (!result.success && result.code === "NOT_FOUND") {
+    return err("Producto no encontrado", "NOT_FOUND");
+  }
+  return result;
 }

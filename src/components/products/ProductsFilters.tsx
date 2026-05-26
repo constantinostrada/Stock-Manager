@@ -12,6 +12,7 @@ interface ProductsFiltersProps {
   products: ProductDTO[];
   categories: Array<{ id: string; name: string }>;
   stockByProductId?: Record<string, number>;
+  movementCountByProductId?: Record<string, number>;
   onFilteredChange?: (filtered: ProductDTO[]) => void;
 }
 
@@ -36,6 +37,7 @@ export function ProductsFilters({
   products,
   categories,
   stockByProductId = {},
+  movementCountByProductId = {},
   onFilteredChange,
 }: ProductsFiltersProps) {
   const [search, setSearch] = useState<string>(DEFAULT_SEARCH);
@@ -192,6 +194,7 @@ export function ProductsFilters({
         <ProductsTable
           products={filtered}
           stockByProductId={stockByProductId}
+          movementCountByProductId={movementCountByProductId}
           categories={categories}
         />
       )}

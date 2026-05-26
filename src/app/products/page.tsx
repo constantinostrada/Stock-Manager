@@ -11,18 +11,26 @@ import {
   listProductsUseCase,
   listCategoriesUseCase,
   listStockLevelsUseCase,
+  listStockMovementsUseCase,
 } from "@infrastructure/container";
 
 export default async function ProductsPage() {
-  const [products, categories, stockLevels] = await Promise.all([
+  const [products, categories, stockLevels, movements] = await Promise.all([
     listProductsUseCase.execute({}),
     listCategoriesUseCase.execute(),
     listStockLevelsUseCase.execute(),
+    listStockMovementsUseCase.execute({}),
   ]);
 
   const stockByProductId: Record<string, number> = {};
   for (const level of stockLevels) {
     stockByProductId[level.productId] = level.quantity;
+  }
+
+  const movementCountByProductId: Record<string, number> = {};
+  for (const movement of movements) {
+    movementCountByProductId[movement.productId] =
+      (movementCountByProductId[movement.productId] ?? 0) + 1;
   }
 
   const categoryOptions = categories.map((c) => ({ id: c.id, name: c.name }));
@@ -32,6 +40,7 @@ export default async function ProductsPage() {
       products={products}
       categories={categoryOptions}
       stockByProductId={stockByProductId}
+      movementCountByProductId={movementCountByProductId}
     />
   );
 }

@@ -11,6 +11,8 @@ interface ProductsTableProps {
   products: ProductDTO[];
   /** Map of productId → current stock quantity, used to render the Stock column. */
   stockByProductId?: Record<string, number>;
+  /** Map of productId → count of stock movements, used by DeleteProductButton's confirmation message. */
+  movementCountByProductId?: Record<string, number>;
   /** Category options for the inline EditProductDialog. */
   categories?: Array<{ id: string; name: string }>;
 }
@@ -18,6 +20,7 @@ interface ProductsTableProps {
 export function ProductsTable({
   products,
   stockByProductId = {},
+  movementCountByProductId = {},
   categories = [],
 }: ProductsTableProps) {
   const router = useRouter();
@@ -122,7 +125,8 @@ export function ProductsTable({
                     <DeleteProductButton
                       productId={product.id}
                       productName={product.name}
-                      iconOnly
+                      productSku={product.sku}
+                      movementCount={movementCountByProductId[product.id] ?? 0}
                     />
                   </div>
                 </td>
