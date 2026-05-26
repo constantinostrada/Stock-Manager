@@ -105,6 +105,44 @@ export class PrismaStockRepository implements IStockRepository {
     return this.toMovementDomain(row);
   }
 
+  async applyMovement(
+    stockLevel: StockLevel,
+    movement: StockMovement,
+  ): Promise<{ stockLevel: StockLevel; movement: StockMovement }> {
+    const [levelRow, movementRow] = await this.db.$transaction([
+      this.db.stockLevel.upsert({
+        where: { productId: stockLevel.productId },
+        create: {
+          id: stockLevel.id,
+          productId: stockLevel.productId,
+          quantity: stockLevel.quantity,
+          minQuantity: stockLevel.minQuantity,
+          updatedAt: stockLevel.updatedAt,
+        },
+        update: {
+          quantity: stockLevel.quantity,
+          minQuantity: stockLevel.minQuantity,
+          updatedAt: stockLevel.updatedAt,
+        },
+      }),
+      this.db.stockMovement.create({
+        data: {
+          id: movement.id,
+          productId: movement.productId,
+          type: movement.type.value,
+          quantity: movement.quantity,
+          reason: movement.reason,
+          reference: movement.reference,
+          createdAt: movement.createdAt,
+        },
+      }),
+    ]);
+    return {
+      stockLevel: this.toStockLevelDomain(levelRow),
+      movement: this.toMovementDomain(movementRow),
+    };
+  }
+
   // ─── Mapping ─────────────────────────────────────────────────────────────
 
   private toStockLevelDomain(row: PrismaStockLevel): StockLevel {
