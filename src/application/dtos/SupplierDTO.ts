@@ -23,6 +23,14 @@ export interface CreateSupplierInputDTO {
   notes?: string | null | undefined;
 }
 
+export interface UpdateSupplierInputDTO {
+  id: string;
+  name: string;
+  email?: string | null | undefined;
+  phone?: string | null | undefined;
+  notes?: string | null | undefined;
+}
+
 export interface DeleteSupplierInputDTO {
   id: string;
 }

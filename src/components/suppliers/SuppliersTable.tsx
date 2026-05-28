@@ -1,4 +1,5 @@
 import type { SupplierDTO } from "@application/dtos/SupplierDTO";
+import { EditSupplierDialog } from "@/components/suppliers/EditSupplierDialog";
 
 export interface SuppliersTableProps {
   suppliers: SupplierDTO[];
@@ -32,6 +33,7 @@ export function SuppliersTable({
             <th className="px-4 py-2 text-right font-medium">
               Productos asociados
             </th>
+            <th className="px-4 py-2 text-right font-medium">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -56,6 +58,12 @@ export function SuppliersTable({
                   data-testid="supplier-product-count"
                 >
                   {count}
+                </td>
+                <td
+                  className="px-4 py-2 text-right"
+                  data-testid="supplier-row-actions"
+                >
+                  <EditSupplierDialog supplier={supplier} />
                 </td>
               </tr>
             );

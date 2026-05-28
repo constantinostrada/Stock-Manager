@@ -9,10 +9,12 @@
 import {
   createSupplierUseCase,
   listSuppliersUseCase,
+  updateSupplierUseCase,
   deleteSupplierUseCase,
 } from "@infrastructure/container";
 import {
   createSupplierSchema,
+  updateSupplierSchema,
   deleteSupplierSchema,
 } from "@interfaces/validation/supplierSchemas";
 import {
@@ -62,6 +64,34 @@ export async function createSupplier(
 
 export async function listSuppliers(): Promise<ActionResult<SupplierDTO[]>> {
   return runAction(() => listSuppliersUseCase.execute());
+}
+
+export async function updateSupplier(
+  rawInput: unknown,
+): Promise<ActionResult<SupplierDTO>> {
+  const parsed = updateSupplierSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const fieldErrors = firstFieldErrors(parsed.error.flatten().fieldErrors);
+    return err(
+      Object.values(fieldErrors)[0] ?? "Datos inválidos.",
+      "VALIDATION_ERROR",
+      fieldErrors,
+    );
+  }
+
+  const result = await runAction(() =>
+    updateSupplierUseCase.execute(parsed.data),
+  );
+
+  if (!result.success && result.code === "CONFLICT") {
+    return err("El nombre del proveedor ya existe.", "CONFLICT", {
+      name: "El nombre del proveedor ya existe.",
+    });
+  }
+  if (!result.success && result.code === "NOT_FOUND") {
+    return err("Proveedor no encontrado.", "NOT_FOUND");
+  }
+  return result;
 }
 
 export async function deleteSupplier(

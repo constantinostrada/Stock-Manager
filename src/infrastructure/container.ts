@@ -34,6 +34,7 @@ import { ListCategoriesUseCase } from "@application/use-cases/category/ListCateg
 import { DeleteCategoryUseCase } from "@application/use-cases/category/DeleteCategoryUseCase";
 import { CreateSupplierUseCase } from "@application/use-cases/supplier/CreateSupplierUseCase";
 import { ListSuppliersUseCase } from "@application/use-cases/supplier/ListSuppliersUseCase";
+import { UpdateSupplierUseCase } from "@application/use-cases/supplier/UpdateSupplierUseCase";
 import { DeleteSupplierUseCase } from "@application/use-cases/supplier/DeleteSupplierUseCase";
 
 // ─── Instantiate repositories ─────────────────────────────────────────────────
@@ -85,4 +86,5 @@ export const deleteCategoryUseCase = new DeleteCategoryUseCase(categoryRepositor
 
 export const createSupplierUseCase = new CreateSupplierUseCase(supplierRepository);
 export const listSuppliersUseCase = new ListSuppliersUseCase(supplierRepository);
+export const updateSupplierUseCase = new UpdateSupplierUseCase(supplierRepository);
 export const deleteSupplierUseCase = new DeleteSupplierUseCase(supplierRepository);
