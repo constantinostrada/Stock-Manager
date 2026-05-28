@@ -40,6 +40,7 @@ export class PrismaProductRepository implements IProductRepository {
           name: { contains: filters.name, mode: "insensitive" as const },
         }),
         ...(filters.categoryId && { categoryId: filters.categoryId }),
+        ...(filters.supplierId && { supplierId: filters.supplierId }),
         ...(filters.skuContains && {
           sku: { contains: filters.skuContains.toUpperCase() },
         }),

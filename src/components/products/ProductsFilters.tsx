@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductsTable } from "@/components/products/ProductsTable";
@@ -15,6 +16,12 @@ interface ProductsFiltersProps {
   stockByProductId?: Record<string, number>;
   movementCountByProductId?: Record<string, number>;
   initialSearch?: string | undefined;
+  /**
+   * Initial supplier filter — comes from the URL (`?supplierId=`). The filter
+   * is server-side: changing the selection navigates to a new URL via
+   * router.push so the listProducts action re-runs with the chosen supplierId.
+   */
+  initialSupplierId?: string | undefined;
   onFilteredChange?: (filtered: ProductDTO[]) => void;
   /** Selection state lifted up to ProductsCatalog — passed through to ProductsTable. */
   selectedSkus?: Set<string>;
@@ -46,15 +53,27 @@ export function ProductsFilters({
   stockByProductId = {},
   movementCountByProductId = {},
   initialSearch,
+  initialSupplierId,
   onFilteredChange,
   selectedSkus,
   onToggleOne,
   onToggleAll,
 }: ProductsFiltersProps) {
+  const router = useRouter();
   const [search, setSearch] = useState<string>(initialSearch ?? DEFAULT_SEARCH);
   const [categoryId, setCategoryId] = useState<string>(DEFAULT_CATEGORY_ID);
   const [stockLevel, setStockLevel] =
     useState<StockLevelFilter>(DEFAULT_STOCK_LEVEL);
+  const supplierId = initialSupplierId ?? "";
+
+  function navigateWithSupplier(nextSupplierId: string) {
+    const params = new URLSearchParams();
+    const trimmedSearch = search.trim();
+    if (trimmedSearch.length > 0) params.set("q", trimmedSearch);
+    if (nextSupplierId.length > 0) params.set("supplierId", nextSupplierId);
+    const qs = params.toString();
+    router.push(qs.length > 0 ? `/products?${qs}` : "/products");
+  }
 
   const total = products.length;
 
@@ -165,6 +184,35 @@ export function ProductsFilters({
               onClick={() => setStockLevel(DEFAULT_STOCK_LEVEL)}
               aria-label="Limpiar nivel de stock"
               data-testid="clear-stock-level"
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs"
+            >
+              <X className="h-3 w-3" />
+              Limpiar
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1">
+          <select
+            value={supplierId}
+            onChange={(e) => navigateWithSupplier(e.target.value)}
+            aria-label="Filtrar por proveedor"
+            data-testid="supplier-filter"
+            className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 rounded-md border px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
+          >
+            <option value="">Todos los proveedores</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          {supplierId.length > 0 && (
+            <button
+              type="button"
+              onClick={() => navigateWithSupplier("")}
+              aria-label="Limpiar proveedor"
+              data-testid="clear-supplier"
               className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs"
             >
               <X className="h-3 w-3" />

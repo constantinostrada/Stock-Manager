@@ -14,6 +14,7 @@ interface ProductsCatalogProps {
   stockByProductId?: Record<string, number>;
   movementCountByProductId?: Record<string, number>;
   initialSearch?: string | undefined;
+  initialSupplierId?: string | undefined;
 }
 
 export function ProductsCatalog({
@@ -23,6 +24,7 @@ export function ProductsCatalog({
   stockByProductId = {},
   movementCountByProductId = {},
   initialSearch,
+  initialSupplierId,
 }: ProductsCatalogProps) {
   const [filtered, setFiltered] = useState<ProductDTO[]>(products);
   const [selectedSkus, setSelectedSkus] = useState<Set<string>>(
@@ -85,6 +87,7 @@ export function ProductsCatalog({
         stockByProductId={stockByProductId}
         movementCountByProductId={movementCountByProductId}
         initialSearch={initialSearch}
+        {...(initialSupplierId !== undefined ? { initialSupplierId } : {})}
         onFilteredChange={handleFilteredChange}
         selectedSkus={selectedSkus}
         onToggleOne={handleToggleOne}

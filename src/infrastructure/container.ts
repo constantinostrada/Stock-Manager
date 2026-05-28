@@ -55,7 +55,11 @@ export const getProductBySkuUseCase = new GetProductBySkuUseCase(
   stockRepository,
   categoryRepository,
 );
-export const listProductsUseCase = new ListProductsUseCase(productRepository, categoryRepository);
+export const listProductsUseCase = new ListProductsUseCase(
+  productRepository,
+  categoryRepository,
+  supplierRepository,
+);
 export const updateProductUseCase = new UpdateProductUseCase(
   productRepository,
   categoryRepository,
