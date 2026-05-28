@@ -14,6 +14,7 @@ import {
   listProductsUseCase,
   getProductUseCase,
   getProductBySkuUseCase,
+  getProductWithMovementsUseCase,
   updateProductUseCase,
   deleteProductUseCase,
   deleteProductsBulkUseCase,
@@ -31,6 +32,7 @@ import type {
   DeleteProductsBulkResultDTO,
 } from "@application/dtos/ProductDTO";
 import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
+import type { GetProductWithMovementsResultDTO } from "@application/use-cases/product/GetProductWithMovementsUseCase";
 
 export async function createProduct(
   rawInput: unknown,
@@ -76,6 +78,16 @@ export async function getProductBySku(
   sku: string,
 ): Promise<ActionResult<GetProductBySkuResultDTO>> {
   return runAction(() => getProductBySkuUseCase.execute({ sku }));
+}
+
+export async function getProductWithMovements(
+  productId: string,
+  page = 1,
+  limit = 10,
+): Promise<ActionResult<GetProductWithMovementsResultDTO>> {
+  return runAction(() =>
+    getProductWithMovementsUseCase.execute({ product_id: productId, page, limit }),
+  );
 }
 
 export async function updateProduct(

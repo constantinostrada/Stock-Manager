@@ -34,6 +34,7 @@ function makeStockRepo(): IStockRepository {
     saveStockLevel: vi.fn(),
     findMovementById: vi.fn(),
     findMovements: vi.fn(),
+    countMovements: vi.fn(),
     saveMovement: vi.fn(),
     applyMovement: vi.fn(),
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { DeleteProductButton } from "@/components/products/DeleteProductButton";
@@ -99,7 +100,7 @@ export function ProductsTable({
         </thead>
         <tbody className="divide-y">
           {products.map((product) => {
-            const href = `/products/${encodeURIComponent(product.sku)}`;
+            const href = `/products/${encodeURIComponent(product.id)}`;
             const isSelected =
               selectionEnabled && selectedSkus!.has(product.sku);
             return (
@@ -184,6 +185,13 @@ export function ProductsTable({
                   onKeyDown={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center justify-end gap-1">
+                    <Link
+                      href={href}
+                      data-testid={`view-detail-link-${product.id}`}
+                      className="text-primary hover:text-primary/80 text-xs font-medium underline-offset-4 hover:underline mr-1"
+                    >
+                      Ver detalle
+                    </Link>
                     <RegisterMovementDialog
                       productId={product.id}
                       productName={product.name}

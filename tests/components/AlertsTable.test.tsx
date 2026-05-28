@@ -159,30 +159,30 @@ describe("AlertsTable — urgency badges (AC-5..9)", () => {
 });
 
 describe("AlertsTable — row navigation (AC-10)", () => {
-  it("clicking a row navigates to /products/<sku>", () => {
+  it("clicking a row navigates to /products/<id> (T25 — id-based route)", () => {
     render(<AlertsTable rows={[makeRow("p1", { sku: "MS-01" })]} />);
     fireEvent.click(screen.getByTestId("alert-row"));
-    expect(pushMock).toHaveBeenCalledWith("/products/MS-01");
+    expect(pushMock).toHaveBeenCalledWith("/products/p1");
   });
 
-  it("URL-encodes special characters in the SKU", () => {
-    render(<AlertsTable rows={[makeRow("p1", { sku: "MS 01/A" })]} />);
+  it("URL-encodes special characters in the id", () => {
+    render(<AlertsTable rows={[makeRow("id with/slash", { sku: "MS 01/A" })]} />);
     fireEvent.click(screen.getByTestId("alert-row"));
     expect(pushMock).toHaveBeenCalledWith(
-      `/products/${encodeURIComponent("MS 01/A")}`,
+      `/products/${encodeURIComponent("id with/slash")}`,
     );
   });
 
   it("pressing Enter on a focused row navigates", () => {
     render(<AlertsTable rows={[makeRow("p1", { sku: "MS-01" })]} />);
     fireEvent.keyDown(screen.getByTestId("alert-row"), { key: "Enter" });
-    expect(pushMock).toHaveBeenCalledWith("/products/MS-01");
+    expect(pushMock).toHaveBeenCalledWith("/products/p1");
   });
 
   it("pressing Space on a focused row navigates", () => {
     render(<AlertsTable rows={[makeRow("p1", { sku: "MS-01" })]} />);
     fireEvent.keyDown(screen.getByTestId("alert-row"), { key: " " });
-    expect(pushMock).toHaveBeenCalledWith("/products/MS-01");
+    expect(pushMock).toHaveBeenCalledWith("/products/p1");
   });
 
   it("each row carries role='link' + tabIndex for keyboard a11y", () => {

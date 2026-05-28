@@ -14,6 +14,9 @@ export interface StockMovementFilters {
   type?: string;
   fromDate?: Date;
   toDate?: Date;
+  /** Optional pagination — must be paired with offset. Ignored if undefined. */
+  limit?: number;
+  offset?: number;
 }
 
 export interface IStockRepository {
@@ -26,6 +29,7 @@ export interface IStockRepository {
   // Stock movements
   findMovementById(id: string): Promise<StockMovement | null>;
   findMovements(filters?: StockMovementFilters): Promise<StockMovement[]>;
+  countMovements(filters?: Omit<StockMovementFilters, "limit" | "offset">): Promise<number>;
   saveMovement(movement: StockMovement): Promise<StockMovement>;
 
   /**

@@ -20,6 +20,7 @@ import { PrismaSupplierRepository } from "@infrastructure/repositories/PrismaSup
 import { CreateProductUseCase } from "@application/use-cases/product/CreateProductUseCase";
 import { GetProductUseCase } from "@application/use-cases/product/GetProductUseCase";
 import { GetProductBySkuUseCase } from "@application/use-cases/product/GetProductBySkuUseCase";
+import { GetProductWithMovementsUseCase } from "@application/use-cases/product/GetProductWithMovementsUseCase";
 import { ListProductsUseCase } from "@application/use-cases/product/ListProductsUseCase";
 import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProductUseCase";
 import { DeleteProductUseCase } from "@application/use-cases/product/DeleteProductUseCase";
@@ -56,6 +57,12 @@ export const getProductBySkuUseCase = new GetProductBySkuUseCase(
   productRepository,
   stockRepository,
   categoryRepository,
+);
+export const getProductWithMovementsUseCase = new GetProductWithMovementsUseCase(
+  productRepository,
+  stockRepository,
+  categoryRepository,
+  supplierRepository,
 );
 export const listProductsUseCase = new ListProductsUseCase(
   productRepository,

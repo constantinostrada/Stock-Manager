@@ -1,10 +1,10 @@
 /**
- * Product Detail Page (/products/[sku])
+ * Product Detail Page (/products/[id])
  *
- * Server Component that fetches a product (by SKU) together with its stock
- * level and full movement history, then renders the detail layout per T8 ACs:
- * header with name/SKU/category + "Bajo stock" badge, two-column body
- * (info card left, movements table right), back button to /products.
+ * T25 — Server Component that fetches a product by id together with a paginated
+ * slice of its movement history. Shows nombre, precio, stock actual, proveedor
+ * asociado + tabla paginada de movements (DESC). Returns notFound() when the id
+ * does not exist.
  *
  * LAYER: interfaces (Next.js App Router page)
  */
@@ -16,11 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MovementsHistoryTable } from "@/components/stock/MovementsHistoryTable";
-import { getProductBySku } from "@interfaces/actions/productActions";
+import { getProductWithMovements } from "@interfaces/actions/productActions";
 import { LOW_STOCK_THRESHOLD } from "@interfaces/dashboard/constants";
 
 interface ProductDetailPageProps {
-  params: Promise<{ sku: string }>;
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ page?: string; limit?: string }>;
 }
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("es-AR", {
@@ -28,30 +29,41 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("es-AR", {
   timeStyle: "short",
 });
 
-const DATE_ONLY_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "long",
-});
-
 const MONEY_FORMATTER = new Intl.NumberFormat("es-AR", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const { sku } = await params;
-  const decoded = decodeURIComponent(sku);
+const DEFAULT_LIMIT = 10;
 
-  const result = await getProductBySku(decoded);
+function parsePositiveInt(raw: string | undefined, fallback: number): number {
+  const n = Number.parseInt(raw ?? "", 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+export default async function ProductDetailPage({
+  params,
+  searchParams,
+}: ProductDetailPageProps) {
+  const { id } = await params;
+  const sp = (await searchParams) ?? {};
+  const page = parsePositiveInt(sp.page, 1);
+  const limit = parsePositiveInt(sp.limit, DEFAULT_LIMIT);
+
+  const result = await getProductWithMovements(id, page, limit);
   if (!result.success) return notFound();
 
-  const { product, stockLevel, movements } = result.data;
+  const { product, stockLevel, movements, total_movements } = result.data;
   const stockActual = stockLevel?.quantity ?? 0;
   const isLowStock = stockActual < LOW_STOCK_THRESHOLD;
-  const valorTotal = stockActual * product.price;
+  const totalPages = Math.max(1, Math.ceil(total_movements / limit));
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
+  const buildHref = (p: number) =>
+    `/products/${encodeURIComponent(product.id)}?page=${p}&limit=${limit}`;
 
   return (
     <div className="space-y-6" data-testid="product-detail-page">
-      {/* Back button */}
       <div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/products" data-testid="back-to-catalog">
@@ -61,7 +73,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         </Button>
       </div>
 
-      {/* Header */}
       <header
         className="flex flex-wrap items-center gap-3"
         data-testid="product-detail-header"
@@ -90,7 +101,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         ) : null}
       </header>
 
-      {/* Two-column body: info card (left) + movements (right) */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card data-testid="product-info-card">
           <CardHeader>
@@ -117,19 +127,18 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               }
             />
             <Row
-              label="Valor total"
+              label="Proveedor"
               value={
-                <span className="font-mono" data-testid="info-valor-total">
-                  {product.currency} {MONEY_FORMATTER.format(valorTotal)}
-                </span>
-              }
-            />
-            <Row
-              label="Fecha de creación"
-              value={
-                <span data-testid="info-created-at">
-                  {DATE_ONLY_FORMATTER.format(new Date(product.createdAt))}
-                </span>
+                product.supplierName ? (
+                  <span data-testid="info-supplier">{product.supplierName}</span>
+                ) : (
+                  <span
+                    className="text-muted-foreground"
+                    data-testid="info-supplier-empty"
+                  >
+                    Sin proveedor asociado
+                  </span>
+                )
               }
             />
             <Row
@@ -147,8 +156,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <CardHeader>
             <CardTitle>Movimientos</CardTitle>
           </CardHeader>
-          <CardContent>
-            {movements.length === 0 ? (
+          <CardContent className="space-y-4">
+            {total_movements === 0 ? (
               <div
                 className="text-muted-foreground rounded-lg border border-dashed p-8 text-center"
                 data-testid="movements-empty-state"
@@ -156,10 +165,63 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 Sin movimientos registrados aún
               </div>
             ) : (
-              <MovementsHistoryTable
-                movements={movements}
-                productSkuById={{ [product.id]: product.sku }}
-              />
+              <>
+                <MovementsHistoryTable
+                  movements={movements}
+                  productSkuById={{ [product.id]: product.sku }}
+                />
+                <nav
+                  className="flex items-center justify-between text-sm"
+                  data-testid="movements-pagination"
+                >
+                  <span
+                    className="text-muted-foreground"
+                    data-testid="movements-pagination-info"
+                  >
+                    Página {page} de {totalPages} · {total_movements} movimientos
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {hasPrev ? (
+                      <Button variant="outline" size="sm" asChild>
+                        <Link
+                          href={buildHref(page - 1)}
+                          data-testid="movements-pagination-prev"
+                        >
+                          Anterior
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        data-testid="movements-pagination-prev"
+                      >
+                        Anterior
+                      </Button>
+                    )}
+                    {hasNext ? (
+                      <Button variant="outline" size="sm" asChild>
+                        <Link
+                          href={buildHref(page + 1)}
+                          data-testid="movements-pagination-next"
+                        >
+                          Siguiente
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        data-testid="movements-pagination-next"
+                      >
+                        Siguiente
+                      </Button>
+                    )}
+                  </div>
+                </nav>
+              </>
             )}
           </CardContent>
         </Card>
