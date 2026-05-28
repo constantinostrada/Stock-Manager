@@ -91,6 +91,7 @@ export function ProductsTable({
             <th className="px-4 py-3 text-left font-medium">Product</th>
             <th className="px-4 py-3 text-left font-medium">SKU</th>
             <th className="px-4 py-3 text-left font-medium">Category</th>
+            <th className="px-4 py-3 text-left font-medium">Proveedor</th>
             <th className="px-4 py-3 text-right font-medium">Stock</th>
             <th className="px-4 py-3 text-right font-medium">Price</th>
             <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -156,6 +157,13 @@ export function ProductsTable({
                 <td className="px-4 py-3">
                   {product.categoryName ? (
                     <Badge variant="secondary">{product.categoryName}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3" data-testid="supplier-cell">
+                  {product.supplierName ? (
+                    product.supplierName
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}

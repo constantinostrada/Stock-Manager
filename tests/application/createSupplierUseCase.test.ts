@@ -15,6 +15,7 @@ function makeRepo(): ISupplierRepository {
     findByName: vi.fn(),
     findAll: vi.fn(),
     save: vi.fn(),
+    update: vi.fn(),
     delete: vi.fn(),
     existsByName: vi.fn(),
   };

@@ -76,6 +76,17 @@ export class Supplier {
     return this.id === other.id;
   }
 
+  /** Returns a new Supplier with updated fields (immutable update pattern). */
+  update(
+    fields: Partial<Pick<SupplierProps, "name" | "email" | "phone" | "notes">>,
+  ): Supplier {
+    return Supplier.create({
+      ...this,
+      ...fields,
+      updatedAt: new Date(),
+    });
+  }
+
   private static normaliseOptional(value: string | null | undefined): string | null {
     if (value === null || value === undefined) return null;
     const trimmed = value.trim();

@@ -44,9 +44,14 @@ export const createSupplierSchema = z.object({
   notes: optionalTrimmedString(1000, "Las notas"),
 });
 
+export const updateSupplierSchema = createSupplierSchema.extend({
+  id: z.string().min(1, "El id del proveedor es obligatorio."),
+});
+
 export const deleteSupplierSchema = z.object({
   id: z.string().min(1, "El id del proveedor es obligatorio."),
 });
 
 export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;
+export type UpdateSupplierInput = z.infer<typeof updateSupplierSchema>;
 export type DeleteSupplierInput = z.infer<typeof deleteSupplierSchema>;

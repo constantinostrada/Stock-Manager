@@ -44,6 +44,20 @@ export class PrismaSupplierRepository implements ISupplierRepository {
     return this.toDomain(row);
   }
 
+  async update(supplier: Supplier): Promise<Supplier> {
+    const row = await this.db.supplier.update({
+      where: { id: supplier.id },
+      data: {
+        name: supplier.name,
+        email: supplier.email,
+        phone: supplier.phone,
+        notes: supplier.notes,
+        updatedAt: supplier.updatedAt,
+      },
+    });
+    return this.toDomain(row);
+  }
+
   async delete(id: string): Promise<void> {
     try {
       await this.db.supplier.delete({ where: { id } });

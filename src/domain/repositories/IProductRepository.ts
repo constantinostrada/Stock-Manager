@@ -14,6 +14,7 @@ export interface ProductFilters {
   name?: string;
   categoryId?: string;
   skuContains?: string;
+  supplierId?: string;
 }
 
 export interface IProductRepository {

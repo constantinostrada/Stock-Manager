@@ -64,4 +64,5 @@ export interface ListProductsInputDTO {
   name?: string;
   categoryId?: string;
   skuContains?: string;
+  supplierId?: string;
 }

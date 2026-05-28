@@ -13,6 +13,7 @@ export interface ISupplierRepository {
   findByName(name: string): Promise<Supplier | null>;
   findAll(): Promise<Supplier[]>;
   save(supplier: Supplier): Promise<Supplier>;
+  update(supplier: Supplier): Promise<Supplier>;
   delete(id: string): Promise<void>;
   existsByName(name: string, excludeId?: string): Promise<boolean>;
 }

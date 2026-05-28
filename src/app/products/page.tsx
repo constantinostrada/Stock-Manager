@@ -16,16 +16,29 @@ import {
 import { listSuppliers } from "@interfaces/actions/supplierActions";
 
 interface ProductsPageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; supplierId?: string }>;
+}
+
+function normalizeParam(raw: string | string[] | undefined): string | undefined {
+  if (raw === undefined) return undefined;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
 }
 
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
-  const [params, products, categories, stockLevels, movements, suppliersResult] =
+  const params = await searchParams;
+  const supplierIdParam = normalizeParam(params.supplierId);
+  const qParam = normalizeParam(params.q);
+
+  const [products, categories, stockLevels, movements, suppliersResult] =
     await Promise.all([
-      searchParams,
-      listProductsUseCase.execute({}),
+      listProductsUseCase.execute(
+        supplierIdParam !== undefined ? { supplierId: supplierIdParam } : {},
+      ),
       listCategoriesUseCase.execute(),
       listStockLevelsUseCase.execute(),
       listStockMovementsUseCase.execute({}),
@@ -55,7 +68,8 @@ export default async function ProductsPage({
       suppliers={supplierOptions}
       stockByProductId={stockByProductId}
       movementCountByProductId={movementCountByProductId}
-      initialSearch={params.q ?? ""}
+      initialSearch={qParam ?? ""}
+      {...(supplierIdParam !== undefined ? { initialSupplierId: supplierIdParam } : {})}
     />
   );
 }

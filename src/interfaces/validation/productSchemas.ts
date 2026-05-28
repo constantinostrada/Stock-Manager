@@ -80,6 +80,7 @@ export const listProductsSchema = z.object({
   name: z.string().optional(),
   categoryId: z.string().optional(),
   skuContains: z.string().optional(),
+  supplierId: z.string().optional(),
 });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
