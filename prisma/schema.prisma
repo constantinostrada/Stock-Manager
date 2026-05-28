@@ -55,6 +55,19 @@ model StockLevel {
   updatedAt DateTime @updatedAt
 }
 
+// ─── Suppliers ───────────────────────────────────────────────────────────────
+
+model Supplier {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  email String?
+  phone String?
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // ─── Stock Movements ─────────────────────────────────────────────────────────
 
 model StockMovement {

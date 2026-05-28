@@ -14,6 +14,7 @@ import { prisma } from "@infrastructure/database/prismaClient";
 import { PrismaProductRepository } from "@infrastructure/repositories/PrismaProductRepository";
 import { PrismaStockRepository } from "@infrastructure/repositories/PrismaStockRepository";
 import { PrismaCategoryRepository } from "@infrastructure/repositories/PrismaCategoryRepository";
+import { PrismaSupplierRepository } from "@infrastructure/repositories/PrismaSupplierRepository";
 
 // ─── Use cases ───────────────────────────────────────────────────────────────
 import { CreateProductUseCase } from "@application/use-cases/product/CreateProductUseCase";
@@ -31,11 +32,15 @@ import { GetStockSummaryUseCase } from "@application/use-cases/stock/GetStockSum
 import { CreateCategoryUseCase } from "@application/use-cases/category/CreateCategoryUseCase";
 import { ListCategoriesUseCase } from "@application/use-cases/category/ListCategoriesUseCase";
 import { DeleteCategoryUseCase } from "@application/use-cases/category/DeleteCategoryUseCase";
+import { CreateSupplierUseCase } from "@application/use-cases/supplier/CreateSupplierUseCase";
+import { ListSuppliersUseCase } from "@application/use-cases/supplier/ListSuppliersUseCase";
+import { DeleteSupplierUseCase } from "@application/use-cases/supplier/DeleteSupplierUseCase";
 
 // ─── Instantiate repositories ─────────────────────────────────────────────────
 const productRepository = new PrismaProductRepository(prisma);
 const stockRepository = new PrismaStockRepository(prisma);
 const categoryRepository = new PrismaCategoryRepository(prisma);
+const supplierRepository = new PrismaSupplierRepository(prisma);
 
 // ─── Instantiate use cases (exported for use in interfaces/) ──────────────────
 export const createProductUseCase = new CreateProductUseCase(
@@ -68,3 +73,7 @@ export const getStockSummaryUseCase = new GetStockSummaryUseCase(productReposito
 export const createCategoryUseCase = new CreateCategoryUseCase(categoryRepository);
 export const listCategoriesUseCase = new ListCategoriesUseCase(categoryRepository);
 export const deleteCategoryUseCase = new DeleteCategoryUseCase(categoryRepository);
+
+export const createSupplierUseCase = new CreateSupplierUseCase(supplierRepository);
+export const listSuppliersUseCase = new ListSuppliersUseCase(supplierRepository);
+export const deleteSupplierUseCase = new DeleteSupplierUseCase(supplierRepository);
