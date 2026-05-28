@@ -14,6 +14,7 @@ import { StockLevel } from "@domain/entities/StockLevel";
 import type { IProductRepository } from "@domain/repositories/IProductRepository";
 import type { IStockRepository } from "@domain/repositories/IStockRepository";
 import type { ICategoryRepository } from "@domain/repositories/ICategoryRepository";
+import type { ISupplierRepository } from "@domain/repositories/ISupplierRepository";
 import type { CreateProductInputDTO, ProductDTO } from "@application/dtos/ProductDTO";
 import { ProductMapper } from "@application/mappers/ProductMapper";
 import { ConflictException, NotFoundException } from "@application/exceptions/ApplicationException";
@@ -27,6 +28,7 @@ export class CreateProductUseCase {
     private readonly productRepository: IProductRepository,
     private readonly stockRepository: IStockRepository,
     private readonly categoryRepository: ICategoryRepository,
+    private readonly supplierRepository: ISupplierRepository,
   ) {}
 
   async execute(dto: CreateProductInputDTO): Promise<ProductDTO> {
@@ -44,6 +46,14 @@ export class CreateProductUseCase {
       }
     }
 
+    let supplier = null;
+    if (dto.supplierId) {
+      supplier = await this.supplierRepository.findById(dto.supplierId);
+      if (!supplier) {
+        throw new NotFoundException("Supplier", dto.supplierId);
+      }
+    }
+
     const now = new Date();
     const product = Product.create({
       id: generateId(),
@@ -52,6 +62,7 @@ export class CreateProductUseCase {
       sku,
       price: Money.create(dto.price, dto.currency ?? "USD"),
       categoryId: dto.categoryId ?? null,
+      supplierId: dto.supplierId ?? null,
       createdAt: now,
       updatedAt: now,
     });
@@ -69,6 +80,6 @@ export class CreateProductUseCase {
     });
     await this.stockRepository.saveStockLevel(stockLevel);
 
-    return ProductMapper.toDTO(saved, category);
+    return ProductMapper.toDTO(saved, category, supplier);
   }
 }

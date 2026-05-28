@@ -24,14 +24,17 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import type { CategoryDTO } from "@application/dtos/CategoryDTO";
+import type { SupplierDTO } from "@application/dtos/SupplierDTO";
 import type { ActionResult } from "@interfaces/actions/actionHelpers";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
 import { createProduct as defaultCreateProduct } from "@interfaces/actions/productActions";
 
 const NO_CATEGORY = "__none__";
+const NO_SUPPLIER = "__no_supplier__";
 
 export interface NewProductDialogProps {
   categories: Pick<CategoryDTO, "id" | "name">[];
+  suppliers?: Pick<SupplierDTO, "id" | "name">[];
   /**
    * Server Action that creates the product. Injectable for tests; defaults to
    * the real `createProduct` Server Action wired to the DI container.
@@ -40,6 +43,7 @@ export interface NewProductDialogProps {
     sku: string;
     name: string;
     categoryId?: string;
+    supplierId: string | null;
     stockInicial: number;
     price: number;
   }) => Promise<ActionResult<ProductDTO>>;
@@ -52,6 +56,7 @@ export interface NewProductDialogProps {
 
 export function NewProductDialog({
   categories,
+  suppliers = [],
   createProductAction,
   onCreated,
 }: NewProductDialogProps) {
@@ -65,6 +70,7 @@ export function NewProductDialog({
   const [sku, setSku] = React.useState("");
   const [name, setName] = React.useState("");
   const [categoryId, setCategoryId] = React.useState<string>(NO_CATEGORY);
+  const [supplierId, setSupplierId] = React.useState<string>(NO_SUPPLIER);
   const [stockInicial, setStockInicial] = React.useState("0");
   const [price, setPrice] = React.useState("");
 
@@ -72,6 +78,7 @@ export function NewProductDialog({
     setSku("");
     setName("");
     setCategoryId(NO_CATEGORY);
+    setSupplierId(NO_SUPPLIER);
     setStockInicial("0");
     setPrice("");
     setFieldErrors({});
@@ -95,6 +102,7 @@ export function NewProductDialog({
       sku: sku.trim(),
       name: name.trim(),
       categoryId: categoryId === NO_CATEGORY ? undefined : categoryId,
+      supplierId: supplierId === NO_SUPPLIER ? null : supplierId,
       stockInicial: Number(stockInicial),
       price: Number(price),
     };
@@ -209,6 +217,32 @@ export function NewProductDialog({
             {fieldErrors.categoryId && (
               <p role="alert" className="text-xs text-destructive">
                 {fieldErrors.categoryId}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="np-supplier">Proveedor</Label>
+            <Select value={supplierId} onValueChange={setSupplierId}>
+              <SelectTrigger
+                id="np-supplier"
+                aria-label="Proveedor"
+                data-testid="np-supplier"
+              >
+                <SelectValue placeholder="Sin proveedor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_SUPPLIER}>Sin proveedor</SelectItem>
+                {suppliers.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldErrors.supplierId && (
+              <p role="alert" className="text-xs text-destructive">
+                {fieldErrors.supplierId}
               </p>
             )}
           </div>

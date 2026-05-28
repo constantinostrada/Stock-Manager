@@ -20,6 +20,8 @@ model Product {
   price       Float
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id])
+  supplierId  String?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -29,6 +31,7 @@ model Product {
 
   @@index([sku])
   @@index([categoryId])
+  @@index([supplierId])
 }
 
 // ─── Categories ──────────────────────────────────────────────────────────────
@@ -63,6 +66,8 @@ model Supplier {
   email String?
   phone String?
   notes String?
+
+  products Product[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

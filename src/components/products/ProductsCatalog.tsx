@@ -10,6 +10,7 @@ import type { ProductDTO } from "@application/dtos/ProductDTO";
 interface ProductsCatalogProps {
   products: ProductDTO[];
   categories: Array<{ id: string; name: string }>;
+  suppliers?: Array<{ id: string; name: string }>;
   stockByProductId?: Record<string, number>;
   movementCountByProductId?: Record<string, number>;
   initialSearch?: string | undefined;
@@ -18,6 +19,7 @@ interface ProductsCatalogProps {
 export function ProductsCatalog({
   products,
   categories,
+  suppliers = [],
   stockByProductId = {},
   movementCountByProductId = {},
   initialSearch,
@@ -72,13 +74,14 @@ export function ProductsCatalog({
             products={filtered}
             stockByProductId={stockByProductId}
           />
-          <NewProductDialog categories={categories} />
+          <NewProductDialog categories={categories} suppliers={suppliers} />
         </div>
       </div>
 
       <ProductsFilters
         products={products}
         categories={categories}
+        suppliers={suppliers}
         stockByProductId={stockByProductId}
         movementCountByProductId={movementCountByProductId}
         initialSearch={initialSearch}

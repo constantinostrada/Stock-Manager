@@ -76,4 +76,31 @@ describe("createProductSchema (AC-1: Zod validation)", () => {
     const result = createProductSchema.safeParse(rest);
     expect(result.success).toBe(false);
   });
+
+  it("T18: accepts an optional supplierId as a non-empty string", () => {
+    const result = createProductSchema.safeParse({
+      ...valid,
+      supplierId: "sup-acme",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.supplierId).toBe("sup-acme");
+    }
+  });
+
+  it("T18: accepts a null supplierId", () => {
+    const result = createProductSchema.safeParse({
+      ...valid,
+      supplierId: null,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.supplierId).toBeNull();
+    }
+  });
+
+  it("T18: accepts an omitted supplierId (field is optional)", () => {
+    const result = createProductSchema.safeParse(valid);
+    expect(result.success).toBe(true);
+  });
 });

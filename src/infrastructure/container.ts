@@ -47,6 +47,7 @@ export const createProductUseCase = new CreateProductUseCase(
   productRepository,
   stockRepository,
   categoryRepository,
+  supplierRepository,
 );
 export const getProductUseCase = new GetProductUseCase(productRepository, categoryRepository);
 export const getProductBySkuUseCase = new GetProductBySkuUseCase(
@@ -55,7 +56,11 @@ export const getProductBySkuUseCase = new GetProductBySkuUseCase(
   categoryRepository,
 );
 export const listProductsUseCase = new ListProductsUseCase(productRepository, categoryRepository);
-export const updateProductUseCase = new UpdateProductUseCase(productRepository, categoryRepository);
+export const updateProductUseCase = new UpdateProductUseCase(
+  productRepository,
+  categoryRepository,
+  supplierRepository,
+);
 export const deleteProductUseCase = new DeleteProductUseCase(productRepository);
 export const deleteProductsBulkUseCase = new DeleteProductsBulkUseCase(
   productRepository,

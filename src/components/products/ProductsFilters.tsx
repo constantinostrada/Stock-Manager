@@ -11,6 +11,7 @@ export type StockLevelFilter = "all" | "in" | "low" | "out";
 interface ProductsFiltersProps {
   products: ProductDTO[];
   categories: Array<{ id: string; name: string }>;
+  suppliers?: Array<{ id: string; name: string }>;
   stockByProductId?: Record<string, number>;
   movementCountByProductId?: Record<string, number>;
   initialSearch?: string | undefined;
@@ -41,6 +42,7 @@ function matchesStockLevel(qty: number, level: StockLevelFilter): boolean {
 export function ProductsFilters({
   products,
   categories,
+  suppliers = [],
   stockByProductId = {},
   movementCountByProductId = {},
   initialSearch,
@@ -205,6 +207,7 @@ export function ProductsFilters({
           stockByProductId={stockByProductId}
           movementCountByProductId={movementCountByProductId}
           categories={categories}
+          suppliers={suppliers}
           {...(selectedSkus !== undefined ? { selectedSkus } : {})}
           {...(onToggleOne !== undefined ? { onToggleOne } : {})}
           {...(onToggleAll !== undefined ? { onToggleAll } : {})}

@@ -13,6 +13,7 @@ import {
   listStockLevelsUseCase,
   listStockMovementsUseCase,
 } from "@infrastructure/container";
+import { listSuppliers } from "@interfaces/actions/supplierActions";
 
 interface ProductsPageProps {
   searchParams: Promise<{ q?: string }>;
@@ -21,13 +22,14 @@ interface ProductsPageProps {
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
-  const [params, products, categories, stockLevels, movements] =
+  const [params, products, categories, stockLevels, movements, suppliersResult] =
     await Promise.all([
       searchParams,
       listProductsUseCase.execute({}),
       listCategoriesUseCase.execute(),
       listStockLevelsUseCase.execute(),
       listStockMovementsUseCase.execute({}),
+      listSuppliers(),
     ]);
 
   const stockByProductId: Record<string, number> = {};
@@ -42,11 +44,15 @@ export default async function ProductsPage({
   }
 
   const categoryOptions = categories.map((c) => ({ id: c.id, name: c.name }));
+  const supplierOptions = suppliersResult.success
+    ? suppliersResult.data.map((s) => ({ id: s.id, name: s.name }))
+    : [];
 
   return (
     <ProductsCatalog
       products={products}
       categories={categoryOptions}
+      suppliers={supplierOptions}
       stockByProductId={stockByProductId}
       movementCountByProductId={movementCountByProductId}
       initialSearch={params.q ?? ""}

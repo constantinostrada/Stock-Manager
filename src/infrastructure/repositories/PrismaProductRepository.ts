@@ -110,6 +110,7 @@ export class PrismaProductRepository implements IProductRepository {
       sku: SKU.create(row.sku),
       price: Money.create(row.price, "USD"),
       categoryId: row.categoryId,
+      supplierId: row.supplierId,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
@@ -123,6 +124,7 @@ export class PrismaProductRepository implements IProductRepository {
       sku: product.sku.value,
       price: product.price.amount,
       categoryId: product.categoryId,
+      supplierId: product.supplierId,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
     };

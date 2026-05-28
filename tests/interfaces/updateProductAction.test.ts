@@ -87,6 +87,8 @@ describe("updateProduct Server Action (T7 AC-1)", () => {
       currency: "USD",
       categoryId: "cat-1",
       categoryName: "Electrónica",
+      supplierId: null,
+      supplierName: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -108,6 +110,35 @@ describe("updateProduct Server Action (T7 AC-1)", () => {
         currency: "USD",
         categoryId: "cat-1",
       }),
+    );
+  });
+
+  it("T18: passes the optional supplierId through to the use case", async () => {
+    executeMock.mockResolvedValueOnce({
+      id: "p-1",
+      name: "Foo",
+      description: null,
+      sku: "ABC-1",
+      price: 99,
+      currency: "USD",
+      categoryId: null,
+      categoryName: null,
+      supplierId: "sup-acme",
+      supplierName: "Acme",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    const r = await updateProduct({
+      id: "p-1",
+      name: "Foo",
+      price: 99,
+      supplierId: "sup-acme",
+    });
+
+    expect(r.success).toBe(true);
+    expect(executeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ supplierId: "sup-acme" }),
     );
   });
 });

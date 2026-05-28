@@ -16,6 +16,8 @@ export interface ProductDTO {
   currency: string;
   categoryId: string | null;
   categoryName: string | null;
+  supplierId: string | null;
+  supplierName: string | null;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
 }
@@ -27,6 +29,7 @@ export interface CreateProductInputDTO {
   price: number;
   currency?: string;
   categoryId?: string;
+  supplierId?: string | null;
   /** Initial stock quantity to seed the StockLevel with (default 0). Must be >= 0. */
   stockInicial?: number;
 }
@@ -38,6 +41,7 @@ export interface UpdateProductInputDTO {
   price?: number;
   currency?: string;
   categoryId?: string | null;
+  supplierId?: string | null;
 }
 
 export interface DeleteProductInputDTO {

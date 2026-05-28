@@ -18,6 +18,7 @@ export interface ProductProps {
   sku: SKU;
   price: Money;
   categoryId: string | null;
+  supplierId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +30,7 @@ export class Product {
   readonly sku: SKU;
   readonly price: Money;
   readonly categoryId: string | null;
+  readonly supplierId: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 
@@ -39,6 +41,7 @@ export class Product {
     this.sku = props.sku;
     this.price = props.price;
     this.categoryId = props.categoryId;
+    this.supplierId = props.supplierId;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
   }
@@ -64,7 +67,7 @@ export class Product {
   }
 
   /** Returns a new Product with updated fields (immutable update pattern). */
-  update(fields: Partial<Pick<ProductProps, "name" | "description" | "price" | "categoryId">>): Product {
+  update(fields: Partial<Pick<ProductProps, "name" | "description" | "price" | "categoryId" | "supplierId">>): Product {
     return Product.create({
       ...this,
       ...fields,

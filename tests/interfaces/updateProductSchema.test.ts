@@ -57,4 +57,24 @@ describe("updateProductSchema (T7 AC-1)", () => {
     const r = updateProductSchema.safeParse({ ...valid, categoryId: null });
     expect(r.success).toBe(true);
   });
+
+  it("T18: accepts supplierId as a non-empty string", () => {
+    const r = updateProductSchema.safeParse({
+      ...valid,
+      supplierId: "sup-acme",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.supplierId).toBe("sup-acme");
+  });
+
+  it("T18: accepts supplierId === null (clearing the supplier)", () => {
+    const r = updateProductSchema.safeParse({ ...valid, supplierId: null });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.supplierId).toBeNull();
+  });
+
+  it("T18: accepts an omitted supplierId (field is optional)", () => {
+    const r = updateProductSchema.safeParse(valid);
+    expect(r.success).toBe(true);
+  });
 });
