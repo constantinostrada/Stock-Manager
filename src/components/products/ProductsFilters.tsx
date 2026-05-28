@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductsTable } from "@/components/products/ProductsTable";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
+
+/** T21 AC-2: debounce in ms between typing and the URL push. */
+export const SEARCH_DEBOUNCE_MS = 300;
 
 export type StockLevelFilter = "all" | "in" | "low" | "out";
 
@@ -66,30 +69,46 @@ export function ProductsFilters({
     useState<StockLevelFilter>(DEFAULT_STOCK_LEVEL);
   const supplierId = initialSupplierId ?? "";
 
-  function navigateWithSupplier(nextSupplierId: string) {
+  function buildUrl(nextSearch: string, nextSupplierId: string): string {
     const params = new URLSearchParams();
-    const trimmedSearch = search.trim();
-    if (trimmedSearch.length > 0) params.set("q", trimmedSearch);
+    const trimmed = nextSearch.trim();
+    if (trimmed.length > 0) params.set("q", trimmed);
     if (nextSupplierId.length > 0) params.set("supplierId", nextSupplierId);
     const qs = params.toString();
-    router.push(qs.length > 0 ? `/products?${qs}` : "/products");
+    return qs.length > 0 ? `/products?${qs}` : "/products";
   }
+
+  function navigateWithSupplier(nextSupplierId: string) {
+    router.push(buildUrl(search, nextSupplierId));
+  }
+
+  // T21 AC-2 + AC-3: debounce search edits before pushing the new URL.
+  // Skip the very first effect so mounting with `initialSearch` from the URL
+  // doesn't re-push the same URL we already came from.
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    const handle = setTimeout(() => {
+      router.push(buildUrl(search, supplierId));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+    // buildUrl is stable; router is from useRouter and stable enough for this UX.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, supplierId]);
 
   const total = products.length;
 
   const filtered = useMemo(() => {
-    const needle = search.trim().toLowerCase();
     return products.filter((p) => {
-      if (needle.length > 0) {
-        const haystack = `${p.sku} ${p.name}`.toLowerCase();
-        if (!haystack.includes(needle)) return false;
-      }
       if (categoryId && p.categoryId !== categoryId) return false;
       const qty = stockByProductId[p.id] ?? 0;
       if (!matchesStockLevel(qty, stockLevel)) return false;
       return true;
     });
-  }, [products, search, categoryId, stockLevel, stockByProductId]);
+  }, [products, categoryId, stockLevel, stockByProductId]);
 
   useEffect(() => {
     onFilteredChange?.(filtered);
@@ -115,8 +134,8 @@ export function ProductsFilters({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por SKU o nombre…"
-            aria-label="Buscar por SKU o nombre"
+            placeholder="Buscar producto…"
+            aria-label="Buscar producto"
             data-testid="search-input"
             className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 pl-8 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
           />
