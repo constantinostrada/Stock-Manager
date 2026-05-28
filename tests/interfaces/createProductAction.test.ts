@@ -84,6 +84,8 @@ describe("createProduct Server Action (AC-1 + AC-4)", () => {
       currency: "USD",
       categoryId: null,
       categoryName: null,
+      supplierId: null,
+      supplierName: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -106,6 +108,36 @@ describe("createProduct Server Action (AC-1 + AC-4)", () => {
         currency: "USD",
         stockInicial: 5,
       }),
+    );
+  });
+
+  it("T18: passes the optional supplierId through to the use case", async () => {
+    executeMock.mockResolvedValueOnce({
+      id: "p1",
+      name: "Foo",
+      description: null,
+      sku: "ABC-1",
+      price: 10,
+      currency: "USD",
+      categoryId: null,
+      categoryName: null,
+      supplierId: "sup-acme",
+      supplierName: "Acme",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    const r = await createProduct({
+      sku: "ABC-1",
+      name: "Foo",
+      price: 10,
+      stockInicial: 0,
+      supplierId: "sup-acme",
+    });
+
+    expect(r.success).toBe(true);
+    expect(executeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ supplierId: "sup-acme" }),
     );
   });
 });

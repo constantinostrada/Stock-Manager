@@ -37,11 +37,18 @@ function makeOk(name = "Mouse"): ActionResult<ProductDTO> {
       currency: "USD",
       categoryId: null,
       categoryName: null,
+      supplierId: null,
+      supplierName: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
   };
 }
+
+const sampleSuppliers = [
+  { id: "sup-acme", name: "Acme S.A." },
+  { id: "sup-globex", name: "Globex" },
+];
 
 beforeEach(() => {
   refreshSpy.mockReset();
@@ -155,6 +162,7 @@ describe("NewProductDialog", () => {
       sku: "MS-02",
       name: "Mouse óptico",
       categoryId: undefined,
+      supplierId: null,
       stockInicial: 3,
       price: 250.5,
     });
@@ -169,6 +177,83 @@ describe("NewProductDialog", () => {
     expect(toastSpy).toHaveBeenCalledTimes(1);
     const toastArg = toastSpy.mock.calls[0]?.[0] as { title?: string };
     expect(toastArg?.title).toMatch(/Producto creado/i);
+  });
+
+  it("T18: renders 'Proveedor' dropdown with 'Sin proveedor' option + every supplier passed via props", async () => {
+    const user = userEvent.setup();
+    render(
+      <NewProductDialog
+        categories={sampleCategories}
+        suppliers={sampleSuppliers}
+        createProductAction={vi.fn()}
+        onCreated={refreshSpy}
+      />,
+    );
+
+    await user.click(screen.getByTestId("new-product-trigger"));
+    await screen.findByRole("dialog");
+
+    // Trigger labelled "Proveedor" exists and shows the default placeholder.
+    const trigger = screen.getByTestId("np-supplier");
+    expect(trigger).toBeInTheDocument();
+    expect(trigger).toHaveTextContent(/Sin proveedor/);
+
+    // Open the Select and verify every supplier option is rendered.
+    await user.click(trigger);
+    const sinProveedor = await screen.findByRole("option", {
+      name: "Sin proveedor",
+    });
+    expect(sinProveedor).toBeInTheDocument();
+    for (const s of sampleSuppliers) {
+      expect(
+        screen.getByRole("option", { name: s.name }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it("T18: when a supplier is selected, the action receives the supplierId", async () => {
+    const action = vi.fn(async () => makeOk("Foo"));
+    const user = userEvent.setup();
+    render(
+      <NewProductDialog
+        categories={sampleCategories}
+        suppliers={sampleSuppliers}
+        createProductAction={action}
+        onCreated={refreshSpy}
+      />,
+    );
+
+    await user.click(screen.getByTestId("new-product-trigger"));
+    await screen.findByRole("dialog");
+
+    fireEvent.change(screen.getByLabelText(/SKU/i), {
+      target: { value: "FOO-01" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Nombre$/i), {
+      target: { value: "Foo" },
+    });
+    fireEvent.change(screen.getByLabelText(/Stock inicial/i), {
+      target: { value: "0" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Precio$/i), {
+      target: { value: "10" },
+    });
+
+    // Open Select and pick Acme.
+    await user.click(screen.getByTestId("np-supplier"));
+    const acmeOption = await screen.findByRole("option", {
+      name: "Acme S.A.",
+    });
+    await user.click(acmeOption);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("np-submit"));
+    });
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+    expect(action).toHaveBeenCalledWith(
+      expect.objectContaining({ supplierId: "sup-acme" }),
+    );
   });
 
   it("AC-6: submit button shows a loading label and is disabled while the action is pending", async () => {

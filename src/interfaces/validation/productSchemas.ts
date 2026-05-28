@@ -31,6 +31,7 @@ export const createProductSchema = z.object({
     .optional()
     .default("USD"),
   categoryId: z.string().optional(),
+  supplierId: z.string().nullable().optional(),
   stockInicial: z
     .number({ invalid_type_error: "El stock inicial debe ser un número." })
     .int("El stock inicial debe ser un número entero.")
@@ -58,6 +59,7 @@ export const updateProductSchema = z.object({
     .optional()
     .default("USD"),
   categoryId: z.string().nullable().optional(),
+  supplierId: z.string().nullable().optional(),
 });
 
 export const deleteProductSchema = z.object({

@@ -16,6 +16,8 @@ interface ProductsTableProps {
   movementCountByProductId?: Record<string, number>;
   /** Category options for the inline EditProductDialog. */
   categories?: Array<{ id: string; name: string }>;
+  /** Supplier options for the inline EditProductDialog. */
+  suppliers?: Array<{ id: string; name: string }>;
   /**
    * Selection state — when all three of selectedSkus / onToggleOne / onToggleAll
    * are provided, the table renders an extra leftmost checkbox column.
@@ -30,6 +32,7 @@ export function ProductsTable({
   stockByProductId = {},
   movementCountByProductId = {},
   categories = [],
+  suppliers = [],
   selectedSkus,
   onToggleOne,
   onToggleAll,
@@ -189,6 +192,7 @@ export function ProductsTable({
                       product={product}
                       currentStock={stockByProductId[product.id] ?? 0}
                       categories={categories}
+                      suppliers={suppliers}
                     />
                     <DeleteProductButton
                       productId={product.id}

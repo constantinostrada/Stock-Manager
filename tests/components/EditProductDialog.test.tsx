@@ -30,9 +30,16 @@ const sampleProduct: ProductDTO = {
   currency: "USD",
   categoryId: "cat-electro",
   categoryName: "Electrónica",
+  supplierId: null,
+  supplierName: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
+
+const sampleSuppliers = [
+  { id: "sup-acme", name: "Acme S.A." },
+  { id: "sup-globex", name: "Globex" },
+];
 
 function makeOk(name = "Mouse óptico"): ActionResult<ProductDTO> {
   return {
@@ -129,6 +136,7 @@ describe("EditProductDialog", () => {
       id: "p-1",
       name: "Mouse óptico Pro",
       categoryId: "cat-electro",
+      supplierId: null,
       price: 150.5,
       currency: "USD",
     });
@@ -180,6 +188,75 @@ describe("EditProductDialog", () => {
     // Dialog stays open + no success toast
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(toastSpy).not.toHaveBeenCalled();
+  });
+
+  it("T18: renders 'Proveedor' dropdown pre-populated with 'Sin proveedor' when product has no supplierId, and lists all supplier options", async () => {
+    const user = userEvent.setup();
+    render(
+      <EditProductDialog
+        product={sampleProduct}
+        currentStock={0}
+        categories={sampleCategories}
+        suppliers={sampleSuppliers}
+        updateProductAction={vi.fn()}
+        onUpdated={refreshSpy}
+      />,
+    );
+
+    await user.click(
+      screen.getByTestId(`edit-product-trigger-${sampleProduct.id}`),
+    );
+    await screen.findByRole("dialog");
+
+    const trigger = screen.getByTestId("ep-supplier");
+    expect(trigger).toBeInTheDocument();
+    expect(trigger).toHaveTextContent(/Sin proveedor/);
+
+    await user.click(trigger);
+    expect(
+      await screen.findByRole("option", { name: "Sin proveedor" }),
+    ).toBeInTheDocument();
+    for (const s of sampleSuppliers) {
+      expect(
+        screen.getByRole("option", { name: s.name }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it("T18: when product has a supplierId, the dropdown is pre-populated with that supplier's name and submit sends it", async () => {
+    const action = vi.fn(async () => makeOk());
+    const productWithSupplier: ProductDTO = {
+      ...sampleProduct,
+      supplierId: "sup-globex",
+      supplierName: "Globex",
+    };
+    const user = userEvent.setup();
+    render(
+      <EditProductDialog
+        product={productWithSupplier}
+        currentStock={0}
+        categories={sampleCategories}
+        suppliers={sampleSuppliers}
+        updateProductAction={action}
+        onUpdated={refreshSpy}
+      />,
+    );
+
+    await user.click(
+      screen.getByTestId(`edit-product-trigger-${productWithSupplier.id}`),
+    );
+    await screen.findByRole("dialog");
+
+    expect(screen.getByTestId("ep-supplier")).toHaveTextContent(/Globex/);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("ep-submit"));
+    });
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+    expect(action).toHaveBeenCalledWith(
+      expect.objectContaining({ supplierId: "sup-globex" }),
+    );
   });
 
   it("AC-7: submit button shows a loading label and is disabled while the action is pending", async () => {

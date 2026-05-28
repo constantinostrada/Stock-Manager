@@ -24,17 +24,20 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import type { CategoryDTO } from "@application/dtos/CategoryDTO";
+import type { SupplierDTO } from "@application/dtos/SupplierDTO";
 import type { ActionResult } from "@interfaces/actions/actionHelpers";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
 import { updateProduct as defaultUpdateProduct } from "@interfaces/actions/productActions";
 
 const NO_CATEGORY = "__none__";
+const NO_SUPPLIER = "__no_supplier__";
 
 export interface EditProductDialogProps {
   product: ProductDTO;
   /** Current stock quantity for the product. Rendered read-only. */
   currentStock?: number;
   categories: Pick<CategoryDTO, "id" | "name">[];
+  suppliers?: Pick<SupplierDTO, "id" | "name">[];
   /**
    * Server Action that updates the product. Injectable for tests; defaults to
    * the real `updateProduct` Server Action wired to the DI container.
@@ -43,6 +46,7 @@ export interface EditProductDialogProps {
     id: string;
     name: string;
     categoryId: string | null;
+    supplierId: string | null;
     price: number;
     currency?: string;
   }) => Promise<ActionResult<ProductDTO>>;
@@ -54,6 +58,7 @@ export function EditProductDialog({
   product,
   currentStock = 0,
   categories,
+  suppliers = [],
   updateProductAction,
   onUpdated,
 }: EditProductDialogProps) {
@@ -64,14 +69,17 @@ export function EditProductDialog({
   const [formError, setFormError] = React.useState<string | null>(null);
 
   const initialCategoryId = product.categoryId ?? NO_CATEGORY;
+  const initialSupplierId = product.supplierId ?? NO_SUPPLIER;
 
   const [name, setName] = React.useState(product.name);
   const [categoryId, setCategoryId] = React.useState<string>(initialCategoryId);
+  const [supplierId, setSupplierId] = React.useState<string>(initialSupplierId);
   const [price, setPrice] = React.useState(String(product.price));
 
   function resetForm() {
     setName(product.name);
     setCategoryId(initialCategoryId);
+    setSupplierId(initialSupplierId);
     setPrice(String(product.price));
     setFieldErrors({});
     setFormError(null);
@@ -94,6 +102,7 @@ export function EditProductDialog({
       id: product.id,
       name: name.trim(),
       categoryId: categoryId === NO_CATEGORY ? null : categoryId,
+      supplierId: supplierId === NO_SUPPLIER ? null : supplierId,
       price: Number(price),
       currency: product.currency,
     };
@@ -204,6 +213,32 @@ export function EditProductDialog({
             {fieldErrors.categoryId && (
               <p role="alert" className="text-xs text-destructive">
                 {fieldErrors.categoryId}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-supplier">Proveedor</Label>
+            <Select value={supplierId} onValueChange={setSupplierId}>
+              <SelectTrigger
+                id="ep-supplier"
+                aria-label="Proveedor"
+                data-testid="ep-supplier"
+              >
+                <SelectValue placeholder="Sin proveedor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_SUPPLIER}>Sin proveedor</SelectItem>
+                {suppliers.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldErrors.supplierId && (
+              <p role="alert" className="text-xs text-destructive">
+                {fieldErrors.supplierId}
               </p>
             )}
           </div>

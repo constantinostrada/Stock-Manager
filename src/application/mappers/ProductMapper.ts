@@ -9,10 +9,15 @@
 
 import type { Product } from "@domain/entities/Product";
 import type { Category } from "@domain/entities/Category";
+import type { Supplier } from "@domain/entities/Supplier";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
 
 export class ProductMapper {
-  static toDTO(product: Product, category?: Category | null): ProductDTO {
+  static toDTO(
+    product: Product,
+    category?: Category | null,
+    supplier?: Supplier | null,
+  ): ProductDTO {
     return {
       id: product.id,
       name: product.name,
@@ -22,6 +27,8 @@ export class ProductMapper {
       currency: product.price.currency,
       categoryId: product.categoryId,
       categoryName: category?.name ?? null,
+      supplierId: product.supplierId,
+      supplierName: supplier?.name ?? null,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     };
