@@ -86,8 +86,29 @@ export class PrismaStockRepository implements IStockRepository {
           : {}),
       },
       orderBy: { createdAt: "desc" },
+      ...(typeof filters.limit === "number" ? { take: filters.limit } : {}),
+      ...(typeof filters.offset === "number" ? { skip: filters.offset } : {}),
     });
     return rows.map((r) => this.toMovementDomain(r));
+  }
+
+  async countMovements(
+    filters: Omit<StockMovementFilters, "limit" | "offset"> = {},
+  ): Promise<number> {
+    return this.db.stockMovement.count({
+      where: {
+        ...(filters.productId && { productId: filters.productId }),
+        ...(filters.type && { type: filters.type }),
+        ...(filters.fromDate || filters.toDate
+          ? {
+              createdAt: {
+                ...(filters.fromDate && { gte: filters.fromDate }),
+                ...(filters.toDate && { lte: filters.toDate }),
+              },
+            }
+          : {}),
+      },
+    });
   }
 
   async saveMovement(movement: StockMovement): Promise<StockMovement> {

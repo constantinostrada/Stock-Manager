@@ -1,10 +1,15 @@
 /**
- * T13 — AC-4: ProductsFilters precarga el filtro de búsqueda existente del
- * catálogo cuando recibe `initialSearch` (lo que la página /products pasa
- * desde el query param `q`).
+ * T13 (refreshed for T21) — `ProductsFilters` preloads the search input value
+ * from `initialSearch` (the page derives this from `?q=`).
+ *
+ * Under T21, the search is server-side: the page narrows the `products` prop
+ * via the use case before rendering, and the component only mirrors the URL
+ * value back into the input. This test no longer asserts that the in-component
+ * filter shortens the table — that's the page+use case's job (covered by
+ * `tests/application/listProductsUseCase.test.ts`).
  */
 import { describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { ProductsFilters } from "@/components/products/ProductsFilters";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
 
@@ -18,6 +23,8 @@ function makeProduct(id: string, sku: string, name: string): ProductDTO {
     currency: "USD",
     categoryId: null,
     categoryName: null,
+    supplierId: null,
+    supplierName: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -31,14 +38,7 @@ const products: ProductDTO[] = [
 
 const stockByProductId: Record<string, number> = { p1: 5, p2: 5, p3: 5 };
 
-function visibleSkus(): string[] {
-  const rows = screen.queryAllByTestId("product-row");
-  return rows.map((row) =>
-    within(row).getByText(/^[A-Z]+-\d+$/).textContent?.trim() ?? "",
-  );
-}
-
-describe("ProductsFilters — AC-4 initialSearch precarga", () => {
+describe("ProductsFilters — initialSearch precarga (T13 + T21)", () => {
   it("preloads the search input with `initialSearch` when provided", () => {
     render(
       <ProductsFilters
@@ -51,38 +51,23 @@ describe("ProductsFilters — AC-4 initialSearch precarga", () => {
 
     const input = screen.getByTestId("search-input") as HTMLInputElement;
     expect(input.value).toBe("mouse");
+    // Clear button is visible because the input has a value.
+    expect(screen.getByTestId("clear-search")).toBeInTheDocument();
   });
 
-  it("filters the table by the preloaded search term", () => {
+  it("preloads any string (case preserved) — value mirroring is verbatim", () => {
     render(
       <ProductsFilters
         products={products}
         categories={[]}
         stockByProductId={stockByProductId}
-        initialSearch="mouse"
-      />,
-    );
-
-    expect(visibleSkus()).toEqual(["MOU-001"]);
-    expect(screen.getByTestId("results-counter")).toHaveTextContent(
-      "Mostrando 1 de 3 productos",
-    );
-  });
-
-  it("works for a SKU prefix as well (case-insensitive)", () => {
-    render(
-      <ProductsFilters
-        products={products}
-        categories={[]}
-        stockByProductId={stockByProductId}
-        initialSearch="key"
+        initialSearch="KEY"
       />,
     );
 
     expect((screen.getByTestId("search-input") as HTMLInputElement).value).toBe(
-      "key",
+      "KEY",
     );
-    expect(visibleSkus()).toEqual(["KEY-002"]);
   });
 
   it("falls back to empty when initialSearch is undefined (no precarga)", () => {
@@ -97,6 +82,9 @@ describe("ProductsFilters — AC-4 initialSearch precarga", () => {
     expect((screen.getByTestId("search-input") as HTMLInputElement).value).toBe(
       "",
     );
+    // No clear-search button when nothing is typed.
+    expect(screen.queryByTestId("clear-search")).not.toBeInTheDocument();
+    // The component renders rows for all products it received.
     expect(screen.queryAllByTestId("product-row")).toHaveLength(3);
   });
 });

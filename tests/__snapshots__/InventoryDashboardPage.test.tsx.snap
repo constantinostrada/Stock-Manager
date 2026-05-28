@@ -1,0 +1,148 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`InventoryDashboardPage (/dashboard) > matches the snapshot of the rendered DOM tree 1`] = `
+<div
+  class="space-y-8"
+  data-testid="inventory-dashboard-page"
+>
+  <div>
+    <h1
+      class="text-3xl font-bold tracking-tight"
+    >
+      Dashboard de inventario
+    </h1>
+    <p
+      class="text-muted-foreground mt-1"
+    >
+      Vista de solo lectura con las métricas agregadas del catálogo.
+    </p>
+  </div>
+  <div
+    class="grid gap-4 md:grid-cols-3"
+    data-testid="inventory-dashboard-metrics"
+  >
+    <div
+      class="rounded-xl border bg-card text-card-foreground shadow"
+      data-testid="metric-total-products"
+    >
+      <div
+        class="p-6 flex flex-row items-center justify-between space-y-0 pb-2"
+      >
+        <div
+          class="tracking-tight text-sm font-medium"
+        >
+          Total productos
+        </div>
+      </div>
+      <div
+        class="p-6 pt-0"
+      >
+        <div
+          class="text-3xl font-bold tabular-nums"
+          data-testid="metric-total-products-value"
+        >
+          3
+        </div>
+      </div>
+    </div>
+    <div
+      class="rounded-xl border bg-card text-card-foreground shadow"
+      data-testid="metric-total-stock-value"
+    >
+      <div
+        class="p-6 flex flex-row items-center justify-between space-y-0 pb-2"
+      >
+        <div
+          class="tracking-tight text-sm font-medium"
+        >
+          Valor total del stock
+        </div>
+      </div>
+      <div
+        class="p-6 pt-0"
+      >
+        <div
+          class="text-3xl font-bold tabular-nums"
+          data-testid="metric-total-stock-value-value"
+        >
+          $ 100,00
+        </div>
+      </div>
+    </div>
+    <div
+      class="rounded-xl border text-card-foreground shadow border-destructive/40 bg-destructive/5"
+      data-alert="true"
+      data-testid="metric-low-stock-count"
+    >
+      <div
+        class="p-6 flex flex-row items-center justify-between space-y-0 pb-2"
+      >
+        <div
+          class="tracking-tight text-sm font-medium"
+        >
+          Productos con bajo stock
+        </div>
+      </div>
+      <div
+        class="p-6 pt-0"
+      >
+        <div
+          class="text-3xl font-bold tabular-nums text-destructive"
+          data-testid="metric-low-stock-count-value"
+        >
+          1
+        </div>
+      </div>
+    </div>
+  </div>
+  <section
+    class="space-y-3"
+    data-testid="inventory-dashboard-lowest-stock-section"
+  >
+    <h2
+      class="text-xl font-semibold tracking-tight"
+    >
+      5 productos con menor stock
+    </h2>
+    <ul
+      class="divide-y rounded-md border"
+      data-testid="inventory-dashboard-lowest-stock-list"
+    >
+      <li
+        class="flex items-center justify-between px-4 py-3"
+        data-testid="inventory-dashboard-lowest-stock-row"
+      >
+        <span
+          class="text-sm font-medium"
+          data-testid="lowest-stock-row-name"
+        >
+          Mouse
+        </span>
+        <span
+          class="text-sm tabular-nums"
+          data-testid="lowest-stock-row-stock"
+        >
+          0
+        </span>
+      </li>
+      <li
+        class="flex items-center justify-between px-4 py-3"
+        data-testid="inventory-dashboard-lowest-stock-row"
+      >
+        <span
+          class="text-sm font-medium"
+          data-testid="lowest-stock-row-name"
+        >
+          Teclado
+        </span>
+        <span
+          class="text-sm tabular-nums"
+          data-testid="lowest-stock-row-stock"
+        >
+          6
+        </span>
+      </li>
+    </ul>
+  </section>
+</div>
+`;

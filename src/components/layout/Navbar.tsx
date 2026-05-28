@@ -4,6 +4,7 @@ import { NavbarSearch } from "@/components/layout/NavbarSearch";
 
 const navLinks = [
   { href: "/", label: "Dashboard" },
+  { href: "/dashboard", label: "Inventario", id: "inventory" as const },
   { href: "/products", label: "Products" },
   { href: "/stock", label: "Stock Levels" },
   { href: "/stock/movements", label: "Movements" },
@@ -28,12 +29,18 @@ export function Navbar({ lowStockCount = 0 }: NavbarProps) {
           <nav aria-label="Primary" className="flex items-center gap-1">
             {navLinks.map((link) => {
               const isAlerts = link.id === "alerts";
+              const isInventory = link.id === "inventory";
+              const testId = isAlerts
+                ? "nav-link-alerts"
+                : isInventory
+                  ? "nav-link-inventory"
+                  : undefined;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className="text-muted-foreground hover:text-foreground relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-                  data-testid={isAlerts ? "nav-link-alerts" : undefined}
+                  data-testid={testId}
                   data-has-alerts={isAlerts ? (hasAlerts ? "true" : "false") : undefined}
                   aria-label={
                     isAlerts && hasAlerts

@@ -36,9 +36,10 @@ export default async function ProductsPage({
 
   const [products, categories, stockLevels, movements, suppliersResult] =
     await Promise.all([
-      listProductsUseCase.execute(
-        supplierIdParam !== undefined ? { supplierId: supplierIdParam } : {},
-      ),
+      listProductsUseCase.execute({
+        ...(qParam !== undefined ? { name: qParam } : {}),
+        ...(supplierIdParam !== undefined ? { supplierId: supplierIdParam } : {}),
+      }),
       listCategoriesUseCase.execute(),
       listStockLevelsUseCase.execute(),
       listStockMovementsUseCase.execute({}),

@@ -245,7 +245,11 @@ describe("ExportProductsButton (T9)", () => {
     );
 
     // Force filters to yield zero matches → button should disable + show tooltip.
-    await user.type(screen.getByTestId("search-input"), "zzz-no-match");
+    // (T21 moved the search filter server-side, so we force-empty via the
+    // remaining client-side filters: Pantallas (c2) + stock "in" → p3 in c2
+    // has qty=0, not "in" → 0 matches.)
+    await user.selectOptions(screen.getByTestId("category-filter"), "c2");
+    await user.selectOptions(screen.getByTestId("stock-level-filter"), "in");
 
     await waitFor(() => {
       const btn = screen.getByTestId("export-csv-trigger") as HTMLButtonElement;

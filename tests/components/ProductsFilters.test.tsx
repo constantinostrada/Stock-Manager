@@ -1,10 +1,12 @@
 /**
- * Tests for ProductsFilters — covers T6 ACs:
- *  - AC-1: search input top-left, placeholder "Buscar por SKU o nombre…",
- *          case-insensitive against sku and name, client-side.
+ * Tests for ProductsFilters — covers T6 ACs, refreshed for T21:
+ *  - AC-1: search input top-left, placeholder "Buscar producto…"
+ *          (T21 moved the search filter server-side via the URL `?q=` param,
+ *          so the client-side substring assertions were dropped from this file
+ *          and live in `ProductsFiltersSearchDebounce.test.tsx` instead).
  *  - AC-2 + AC-3: Nivel de stock select with Todos / En stock /
  *          Bajo stock (<10) / Sin stock (=0).
- *  - AC-4: filters combine AND.
+ *  - AC-4: category + stock-level filters combine AND, client-side.
  *  - AC-5: counter "Mostrando N de M productos".
  *  - AC-6: empty state + "Limpiar filtros" resets the three filters.
  *  - AC-7: individual "✕ Limpiar" button per active filter.
@@ -77,8 +79,7 @@ function visibleSkus(): string[] {
 }
 
 describe("ProductsFilters", () => {
-  it("AC-1: search input is top-left with placeholder 'Buscar por SKU o nombre…' and filters case-insensitively by sku or name", async () => {
-    const user = userEvent.setup();
+  it("AC-1 (T21): search input is top-left with placeholder 'Buscar producto…'", () => {
     setup();
 
     const filtersContainer = screen.getByTestId("products-filters");
@@ -87,21 +88,7 @@ describe("ProductsFilters", () => {
     expect(inputs[0]).toBe(screen.getByTestId("search-input"));
 
     const searchInput = screen.getByTestId("search-input") as HTMLInputElement;
-    expect(searchInput.placeholder).toBe("Buscar por SKU o nombre…");
-
-    // Match by name (case-insensitive)
-    await user.type(searchInput, "MOUSE");
-    expect(visibleSkus()).toEqual(["MOU-001"]);
-
-    // Clear and match by SKU (case-insensitive lowercase)
-    await user.clear(searchInput);
-    await user.type(searchInput, "key-002");
-    expect(visibleSkus()).toEqual(["KEY-002"]);
-
-    // Partial match against name
-    await user.clear(searchInput);
-    await user.type(searchInput, "cab");
-    expect(visibleSkus()).toEqual(["CAB-004"]);
+    expect(searchInput.placeholder).toBe("Buscar producto…");
   });
 
   it("AC-2 + AC-3: Nivel de stock select has Todos / En stock / Bajo stock (<10) / Sin stock (=0) and filters the table", async () => {
@@ -134,7 +121,7 @@ describe("ProductsFilters", () => {
     expect(visibleSkus()).toHaveLength(5);
   });
 
-  it("AC-4: search + category + stock-level filters combine with AND", async () => {
+  it("AC-4 (T21-aware): category + stock-level filters combine with AND (search is now server-side, see ProductsFiltersSearchDebounce.test.tsx)", async () => {
     const user = userEvent.setup();
     setup();
 
@@ -146,14 +133,9 @@ describe("ProductsFilters", () => {
     await user.selectOptions(screen.getByTestId("stock-level-filter"), "low");
     expect(visibleSkus()).toEqual(["USB-005"]);
 
-    // + Search "USB" → still p5
-    await user.type(screen.getByTestId("search-input"), "USB");
-    expect(visibleSkus()).toEqual(["USB-005"]);
-
-    // Tighten search to a non-matching term within the same Cables+low subset
-    await user.clear(screen.getByTestId("search-input"));
-    await user.type(screen.getByTestId("search-input"), "Mouse");
-    expect(visibleSkus()).toEqual([]);
+    // + tighten stock to "in" inside Cables → only p4 (qty=20)
+    await user.selectOptions(screen.getByTestId("stock-level-filter"), "in");
+    expect(visibleSkus()).toEqual(["CAB-004"]);
   });
 
   it("AC-5: shows a 'Mostrando N de M productos' counter that updates with filters", async () => {
@@ -166,8 +148,9 @@ describe("ProductsFilters", () => {
     await user.selectOptions(screen.getByTestId("stock-level-filter"), "out");
     expect(counter).toHaveTextContent("Mostrando 1 de 5 productos");
 
-    await user.selectOptions(screen.getByTestId("stock-level-filter"), "all");
-    await user.type(screen.getByTestId("search-input"), "no-match-zzz");
+    // Combine category "Pantallas" (only p3) + stock "in" (p3 is qty=0) → 0 matches.
+    await user.selectOptions(screen.getByTestId("stock-level-filter"), "in");
+    await user.selectOptions(screen.getByTestId("category-filter"), "c2");
     expect(counter).toHaveTextContent("Mostrando 0 de 5 productos");
   });
 
@@ -175,9 +158,10 @@ describe("ProductsFilters", () => {
     const user = userEvent.setup();
     setup();
 
-    await user.type(screen.getByTestId("search-input"), "no-match-zzz");
-    await user.selectOptions(screen.getByTestId("category-filter"), "c1");
-    await user.selectOptions(screen.getByTestId("stock-level-filter"), "out");
+    // Force zero matches via category + stock-level only (search is server-side now).
+    // Pantallas (c2) + stock "in" → p3 in c2 has qty=0, not "in" → 0 matches.
+    await user.selectOptions(screen.getByTestId("category-filter"), "c2");
+    await user.selectOptions(screen.getByTestId("stock-level-filter"), "in");
 
     const empty = screen.getByTestId("filters-empty-state");
     expect(empty).toBeInTheDocument();
@@ -214,7 +198,8 @@ describe("ProductsFilters", () => {
     expect(screen.queryByTestId("clear-category")).not.toBeInTheDocument();
     expect(screen.queryByTestId("clear-stock-level")).not.toBeInTheDocument();
 
-    // Activate all three filters.
+    // Activate the three local filters (search input only needs a value, not a
+    // matching server fetch, for the clear-search button to render).
     await user.type(screen.getByTestId("search-input"), "Mouse");
     await user.selectOptions(screen.getByTestId("category-filter"), "c1");
     await user.selectOptions(screen.getByTestId("stock-level-filter"), "in");
@@ -227,7 +212,7 @@ describe("ProductsFilters", () => {
     expect(clearCategory).toHaveTextContent(/Limpiar/);
     expect(clearStock).toHaveTextContent(/Limpiar/);
 
-    // Click clearSearch — only search resets; category + stock stay.
+    // Click clearSearch — only the search input resets; category + stock stay.
     await user.click(clearSearch);
     expect((screen.getByTestId("search-input") as HTMLInputElement).value).toBe("");
     expect((screen.getByTestId("category-filter") as HTMLSelectElement).value).toBe("c1");

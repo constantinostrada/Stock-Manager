@@ -8,6 +8,7 @@
  */
 
 import { DomainException } from "@domain/exceptions/DomainException";
+import { InsufficientStockError } from "@domain/exceptions/InsufficientStockError";
 
 export interface StockLevelProps {
   id: string;
@@ -70,9 +71,7 @@ export class StockLevel {
       throw new DomainException("Amount to remove must be greater than zero.");
     }
     if (amount > this.quantity) {
-      throw new DomainException(
-        `Insufficient stock. Requested ${amount}, available ${this.quantity}.`,
-      );
+      throw new InsufficientStockError(amount, this.quantity);
     }
     return StockLevel.create({
       ...this,

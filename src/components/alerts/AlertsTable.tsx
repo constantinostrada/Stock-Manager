@@ -48,7 +48,7 @@ export function AlertsTable({ rows }: AlertsTableProps) {
         </thead>
         <tbody className="divide-y">
           {rows.map((row) => {
-            const href = `/products/${encodeURIComponent(row.sku)}`;
+            const href = `/products/${encodeURIComponent(row.productId)}`;
             return (
               <tr
                 key={row.productId}

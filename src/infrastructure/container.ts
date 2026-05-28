@@ -20,6 +20,7 @@ import { PrismaSupplierRepository } from "@infrastructure/repositories/PrismaSup
 import { CreateProductUseCase } from "@application/use-cases/product/CreateProductUseCase";
 import { GetProductUseCase } from "@application/use-cases/product/GetProductUseCase";
 import { GetProductBySkuUseCase } from "@application/use-cases/product/GetProductBySkuUseCase";
+import { GetProductWithMovementsUseCase } from "@application/use-cases/product/GetProductWithMovementsUseCase";
 import { ListProductsUseCase } from "@application/use-cases/product/ListProductsUseCase";
 import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProductUseCase";
 import { DeleteProductUseCase } from "@application/use-cases/product/DeleteProductUseCase";
@@ -36,6 +37,7 @@ import { CreateSupplierUseCase } from "@application/use-cases/supplier/CreateSup
 import { ListSuppliersUseCase } from "@application/use-cases/supplier/ListSuppliersUseCase";
 import { UpdateSupplierUseCase } from "@application/use-cases/supplier/UpdateSupplierUseCase";
 import { DeleteSupplierUseCase } from "@application/use-cases/supplier/DeleteSupplierUseCase";
+import { GetInventoryDashboardUseCase } from "@application/use-cases/dashboard/GetInventoryDashboardUseCase";
 
 // ─── Instantiate repositories ─────────────────────────────────────────────────
 const productRepository = new PrismaProductRepository(prisma);
@@ -55,6 +57,12 @@ export const getProductBySkuUseCase = new GetProductBySkuUseCase(
   productRepository,
   stockRepository,
   categoryRepository,
+);
+export const getProductWithMovementsUseCase = new GetProductWithMovementsUseCase(
+  productRepository,
+  stockRepository,
+  categoryRepository,
+  supplierRepository,
 );
 export const listProductsUseCase = new ListProductsUseCase(
   productRepository,
@@ -88,3 +96,8 @@ export const createSupplierUseCase = new CreateSupplierUseCase(supplierRepositor
 export const listSuppliersUseCase = new ListSuppliersUseCase(supplierRepository);
 export const updateSupplierUseCase = new UpdateSupplierUseCase(supplierRepository);
 export const deleteSupplierUseCase = new DeleteSupplierUseCase(supplierRepository);
+
+export const getInventoryDashboardUseCase = new GetInventoryDashboardUseCase(
+  productRepository,
+  stockRepository,
+);
