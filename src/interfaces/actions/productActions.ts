@@ -16,7 +16,7 @@ import {
   getProductBySkuUseCase,
   getProductWithMovementsUseCase,
   updateProductUseCase,
-  deleteProductUseCase,
+  softDeleteProductUseCase,
   deleteProductsBulkUseCase,
 } from "@infrastructure/container";
 import {
@@ -115,7 +115,7 @@ export async function deleteProduct(
   if (!parsed.success) {
     return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
   }
-  const result = await runAction(() => deleteProductUseCase.execute(parsed.data));
+  const result = await runAction(() => softDeleteProductUseCase.execute(parsed.data));
   if (!result.success && result.code === "NOT_FOUND") {
     return err("Producto no encontrado", "NOT_FOUND");
   }

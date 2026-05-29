@@ -30,5 +30,10 @@ export interface IProductRepository {
    * and a NotFoundException is raised. Returns the count of deleted rows.
    */
   deleteManyBySkus(skus: string[]): Promise<number>;
+  /**
+   * Stamps `deletedAt = now()` on the row. Does NOT touch stock movements or
+   * stock levels — soft-delete preserves the historical audit trail.
+   */
+  softDelete(id: string): Promise<void>;
   existsBySku(sku: string, excludeId?: string): Promise<boolean>;
 }

@@ -25,6 +25,7 @@ import { ListProductsUseCase } from "@application/use-cases/product/ListProducts
 import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProductUseCase";
 import { DeleteProductUseCase } from "@application/use-cases/product/DeleteProductUseCase";
 import { DeleteProductsBulkUseCase } from "@application/use-cases/product/DeleteProductsBulkUseCase";
+import { SoftDeleteProductUseCase } from "@application/use-cases/product/SoftDeleteProductUseCase";
 import { AdjustStockUseCase } from "@application/use-cases/stock/AdjustStockUseCase";
 import { GetStockLevelUseCase } from "@application/use-cases/stock/GetStockLevelUseCase";
 import { ListStockLevelsUseCase } from "@application/use-cases/stock/ListStockLevelsUseCase";
@@ -75,6 +76,9 @@ export const updateProductUseCase = new UpdateProductUseCase(
   supplierRepository,
 );
 export const deleteProductUseCase = new DeleteProductUseCase(productRepository);
+export const softDeleteProductUseCase = new SoftDeleteProductUseCase(
+  productRepository,
+);
 export const deleteProductsBulkUseCase = new DeleteProductsBulkUseCase(
   productRepository,
 );

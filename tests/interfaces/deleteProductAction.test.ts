@@ -2,15 +2,20 @@
  * T10 — AC-1: deleteProduct Server Action delegates to the use case, validates
  * id with Zod, and surfaces a Spanish "Producto no encontrado" message when
  * the use case throws NotFoundException.
+ *
+ * T26: rewired from `deleteProductUseCase` (hard delete) to
+ * `softDeleteProductUseCase`. The external contract (validation + Spanish
+ * not-found mapping) is unchanged.
  */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { NotFoundException } from "@application/exceptions/ApplicationException";
 
 const executeMock = vi.fn();
 vi.mock("@infrastructure/container", () => ({
-  deleteProductUseCase: {
+  softDeleteProductUseCase: {
     execute: (...args: unknown[]) => executeMock(...args),
   },
+  deleteProductUseCase: { execute: vi.fn() },
   updateProductUseCase: { execute: vi.fn() },
   createProductUseCase: { execute: vi.fn() },
   listProductsUseCase: { execute: vi.fn() },
@@ -24,7 +29,7 @@ beforeEach(() => {
   executeMock.mockReset();
 });
 
-describe("deleteProduct Server Action (T10 AC-1)", () => {
+describe("deleteProduct Server Action (T10 AC-1 + T26 rewire to soft delete)", () => {
   it("returns VALIDATION_ERROR when id is missing", async () => {
     const r = await deleteProduct({});
     expect(r.success).toBe(false);

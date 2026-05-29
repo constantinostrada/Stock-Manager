@@ -22,6 +22,7 @@ function makeProductRepo(): IProductRepository {
     update: vi.fn(),
     delete: vi.fn(),
     deleteManyBySkus: vi.fn(),
+    softDelete: vi.fn(),
     existsBySku: vi.fn(),
   };
 }

@@ -4,6 +4,14 @@
  * Concrete implementation of IProductRepository using Prisma + SQLite.
  * Maps Prisma model rows ↔ domain entities.
  *
+ * NOTE on raw SQL (T26): the `deletedAt` column was added by the T26
+ * migration. Reads and the soft-delete write go through `$queryRaw` /
+ * `$executeRaw` so that they DO NOT depend on the running Node process
+ * having reloaded `@prisma/client` after `prisma generate`. The dev server
+ * holds the generated client in `require.cache` for the lifetime of the
+ * process; raw SQL goes straight to the SQLite engine and works regardless
+ * of which generation of the client is cached.
+ *
  * LAYER: infrastructure — allowed to import domain, application, and Prisma.
  */
 
@@ -20,33 +28,55 @@ import {
   NotFoundException,
 } from "@application/exceptions/ApplicationException";
 
+/**
+ * Shape of a row returned by `SELECT *` against the Product table. Mirrors
+ * the regenerated `PrismaProduct` but is restated locally so this file does
+ * not rely on the cached client's TS types being up-to-date.
+ */
+type ProductRow = PrismaProduct & { deletedAt: Date | null };
+
 export class PrismaProductRepository implements IProductRepository {
   constructor(private readonly db: PrismaClient) {}
 
   async findById(id: string): Promise<Product | null> {
-    const row = await this.db.product.findUnique({ where: { id } });
-    return row ? this.toDomain(row) : null;
+    const rows = await this.db.$queryRaw<ProductRow[]>`
+      SELECT * FROM "Product" WHERE "id" = ${id} LIMIT 1
+    `;
+    return rows.length > 0 ? this.toDomain(rows[0]!) : null;
   }
 
   async findBySku(sku: string): Promise<Product | null> {
-    const row = await this.db.product.findUnique({ where: { sku } });
-    return row ? this.toDomain(row) : null;
+    const rows = await this.db.$queryRaw<ProductRow[]>`
+      SELECT * FROM "Product" WHERE "sku" = ${sku} LIMIT 1
+    `;
+    return rows.length > 0 ? this.toDomain(rows[0]!) : null;
   }
 
   async findAll(filters: ProductFilters = {}): Promise<Product[]> {
-    const rows = await this.db.product.findMany({
-      where: {
-        ...(filters.name && {
-          name: { contains: filters.name, mode: "insensitive" as const },
-        }),
-        ...(filters.categoryId && { categoryId: filters.categoryId }),
-        ...(filters.supplierId && { supplierId: filters.supplierId }),
-        ...(filters.skuContains && {
-          sku: { contains: filters.skuContains.toUpperCase() },
-        }),
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    // Soft-delete tombstone: list excludes soft-deleted rows by default.
+    // Built as raw SQL (parameterised) so the `deletedAt` predicate doesn't
+    // hit the cached `@prisma/client` schema validator that may pre-date the
+    // T26 migration.
+    const conditions: string[] = [`"deletedAt" IS NULL`];
+    const params: unknown[] = [];
+    if (filters.name) {
+      conditions.push(`LOWER("name") LIKE LOWER(?)`);
+      params.push(`%${filters.name}%`);
+    }
+    if (filters.categoryId) {
+      conditions.push(`"categoryId" = ?`);
+      params.push(filters.categoryId);
+    }
+    if (filters.supplierId) {
+      conditions.push(`"supplierId" = ?`);
+      params.push(filters.supplierId);
+    }
+    if (filters.skuContains) {
+      conditions.push(`"sku" LIKE ?`);
+      params.push(`%${filters.skuContains.toUpperCase()}%`);
+    }
+    const sql = `SELECT * FROM "Product" WHERE ${conditions.join(" AND ")} ORDER BY "createdAt" DESC`;
+    const rows = await this.db.$queryRawUnsafe<ProductRow[]>(sql, ...params);
     return rows.map((r) => this.toDomain(r));
   }
 
@@ -54,7 +84,7 @@ export class PrismaProductRepository implements IProductRepository {
     const row = await this.db.product.create({
       data: this.toPersistence(product),
     });
-    return this.toDomain(row);
+    return this.toDomain(row as ProductRow);
   }
 
   async update(product: Product): Promise<Product> {
@@ -62,7 +92,7 @@ export class PrismaProductRepository implements IProductRepository {
       where: { id: product.id },
       data: this.toPersistence(product),
     });
-    return this.toDomain(row);
+    return this.toDomain(row as ProductRow);
   }
 
   async delete(id: string): Promise<void> {
@@ -90,6 +120,15 @@ export class PrismaProductRepository implements IProductRepository {
     });
   }
 
+  async softDelete(id: string): Promise<void> {
+    // Raw UPDATE so the soft-delete write doesn't go through the cached
+    // client's schema validator (which may not know `deletedAt` yet).
+    const now = new Date();
+    await this.db.$executeRaw`
+      UPDATE "Product" SET "deletedAt" = ${now}, "updatedAt" = ${now} WHERE "id" = ${id}
+    `;
+  }
+
   async existsBySku(sku: string, excludeId?: string): Promise<boolean> {
     const row = await this.db.product.findFirst({
       where: {
@@ -103,7 +142,7 @@ export class PrismaProductRepository implements IProductRepository {
 
   // ─── Mapping ─────────────────────────────────────────────────────────────
 
-  private toDomain(row: PrismaProduct): Product {
+  private toDomain(row: ProductRow): Product {
     return Product.create({
       id: row.id,
       name: row.name,
@@ -114,9 +153,16 @@ export class PrismaProductRepository implements IProductRepository {
       supplierId: row.supplierId,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      deletedAt: row.deletedAt ?? null,
     });
   }
 
+  /**
+   * Returns the persistence shape WITHOUT `deletedAt`. The soft-delete write
+   * is performed by `softDelete()` via raw SQL — regular `save`/`update`
+   * paths never touch `deletedAt`, so we keep this object compatible with the
+   * cached client's `ProductCreateInput`/`ProductUpdateInput` types.
+   */
   private toPersistence(product: Product) {
     return {
       id: product.id,
