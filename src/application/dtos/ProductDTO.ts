@@ -20,6 +20,8 @@ export interface ProductDTO {
   supplierName: string | null;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
+  /** ISO 8601 timestamp when the product was soft-deleted, or null if active. */
+  deletedAt: string | null;
 }
 
 export interface CreateProductInputDTO {

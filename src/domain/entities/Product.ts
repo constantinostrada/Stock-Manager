@@ -21,6 +21,8 @@ export interface ProductProps {
   supplierId: string | null;
   createdAt: Date;
   updatedAt: Date;
+  /** Soft-delete tombstone. `null` while the product is active. */
+  deletedAt?: Date | null;
 }
 
 export class Product {
@@ -33,6 +35,7 @@ export class Product {
   readonly supplierId: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  readonly deletedAt: Date | null;
 
   private constructor(props: ProductProps) {
     this.id = props.id;
@@ -44,6 +47,7 @@ export class Product {
     this.supplierId = props.supplierId;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
+    this.deletedAt = props.deletedAt ?? null;
   }
 
   static create(props: ProductProps): Product {
@@ -73,6 +77,24 @@ export class Product {
       ...fields,
       updatedAt: new Date(),
     });
+  }
+
+  /**
+   * Marks the product as soft-deleted by stamping `deletedAt` with the current
+   * time. Returns a new Product instance — the previous one is unchanged.
+   * Movements and stock levels are NOT touched (that decision lives at the
+   * application layer; the entity only carries the tombstone).
+   */
+  softDelete(at: Date = new Date()): Product {
+    return Product.create({
+      ...this,
+      deletedAt: at,
+      updatedAt: at,
+    });
+  }
+
+  get isDeleted(): boolean {
+    return this.deletedAt !== null;
   }
 
   equals(other: Product): boolean {

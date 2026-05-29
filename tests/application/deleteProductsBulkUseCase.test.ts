@@ -15,6 +15,7 @@ function makeRepo(deleteManyBySkus: (skus: string[]) => Promise<number>) {
     update: vi.fn(),
     delete: vi.fn(),
     deleteManyBySkus: vi.fn(deleteManyBySkus),
+    softDelete: vi.fn(),
     existsBySku: vi.fn(),
   };
 }

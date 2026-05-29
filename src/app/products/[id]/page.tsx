@@ -56,6 +56,7 @@ export default async function ProductDetailPage({
   const { product, stockLevel, movements, total_movements } = result.data;
   const stockActual = stockLevel?.quantity ?? 0;
   const isLowStock = stockActual < LOW_STOCK_THRESHOLD;
+  const isDeleted = product.deletedAt != null;
   const totalPages = Math.max(1, Math.ceil(total_movements / limit));
   const hasPrev = page > 1;
   const hasNext = page < totalPages;
@@ -72,6 +73,17 @@ export default async function ProductDetailPage({
           </Link>
         </Button>
       </div>
+
+      {isDeleted ? (
+        <div
+          className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border px-4 py-3 text-sm font-medium"
+          role="alert"
+          data-testid="deleted-product-banner"
+        >
+          Producto eliminado el{" "}
+          {DATE_FORMATTER.format(new Date(product.deletedAt as string))}
+        </div>
+      ) : null}
 
       <header
         className="flex flex-wrap items-center gap-3"
@@ -94,7 +106,7 @@ export default async function ProductDetailPage({
             {product.categoryName}
           </Badge>
         ) : null}
-        {isLowStock ? (
+        {!isDeleted && isLowStock ? (
           <Badge variant="destructive" data-testid="low-stock-badge">
             Bajo stock
           </Badge>

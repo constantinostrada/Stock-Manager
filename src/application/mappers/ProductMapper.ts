@@ -31,6 +31,7 @@ export class ProductMapper {
       supplierName: supplier?.name ?? null,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
+      deletedAt: product.deletedAt ? product.deletedAt.toISOString() : null,
     };
   }
 }
