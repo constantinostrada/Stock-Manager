@@ -10,11 +10,19 @@
 
 import type { Product } from "@domain/entities/Product";
 
+export type ProductSortField = "name" | "price" | "stock";
+export type ProductSortDirection = "asc" | "desc";
+export interface ProductSort {
+  field: ProductSortField;
+  direction: ProductSortDirection;
+}
+
 export interface ProductFilters {
   name?: string;
   categoryId?: string;
   skuContains?: string;
   supplierId?: string;
+  sort?: ProductSort;
 }
 
 export interface IProductRepository {

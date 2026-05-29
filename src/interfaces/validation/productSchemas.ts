@@ -76,11 +76,40 @@ export const getProductSchema = z.object({
   id: z.string().min(1, "Product id is required."),
 });
 
+/**
+ * T27 — sort param parser. URL shape: `?sort=<field>:<direction>` where
+ * `<field>` ∈ {name, price, stock} and `<direction>` ∈ {asc, desc}. The
+ * action parses the raw string into a typed `{field, direction}` object
+ * before passing it to the use case.
+ */
+const sortFieldSchema = z.enum(["name", "price", "stock"]);
+const sortDirectionSchema = z.enum(["asc", "desc"]);
+
+export const productSortStringSchema = z
+  .string()
+  .regex(/^(name|price|stock):(asc|desc)$/, "El sort debe tener la forma <campo>:<asc|desc>.")
+  .transform((s) => {
+    const [field, direction] = s.split(":") as [
+      z.infer<typeof sortFieldSchema>,
+      z.infer<typeof sortDirectionSchema>,
+    ];
+    return { field, direction };
+  });
+
+export function parseSortParam(
+  raw: string | undefined,
+): { field: "name" | "price" | "stock"; direction: "asc" | "desc" } | undefined {
+  if (raw === undefined) return undefined;
+  const result = productSortStringSchema.safeParse(raw);
+  return result.success ? result.data : undefined;
+}
+
 export const listProductsSchema = z.object({
   name: z.string().optional(),
   categoryId: z.string().optional(),
   skuContains: z.string().optional(),
   supplierId: z.string().optional(),
+  sort: productSortStringSchema.optional(),
 });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;

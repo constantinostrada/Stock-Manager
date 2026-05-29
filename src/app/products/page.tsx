@@ -14,9 +14,10 @@ import {
   listStockMovementsUseCase,
 } from "@infrastructure/container";
 import { listSuppliers } from "@interfaces/actions/supplierActions";
+import { parseSortParam } from "@interfaces/validation/productSchemas";
 
 interface ProductsPageProps {
-  searchParams: Promise<{ q?: string; supplierId?: string }>;
+  searchParams: Promise<{ q?: string; supplierId?: string; sort?: string }>;
 }
 
 function normalizeParam(raw: string | string[] | undefined): string | undefined {
@@ -33,12 +34,14 @@ export default async function ProductsPage({
   const params = await searchParams;
   const supplierIdParam = normalizeParam(params.supplierId);
   const qParam = normalizeParam(params.q);
+  const sortParam = parseSortParam(normalizeParam(params.sort));
 
   const [products, categories, stockLevels, movements, suppliersResult] =
     await Promise.all([
       listProductsUseCase.execute({
         ...(qParam !== undefined ? { name: qParam } : {}),
         ...(supplierIdParam !== undefined ? { supplierId: supplierIdParam } : {}),
+        ...(sortParam !== undefined ? { sort: sortParam } : {}),
       }),
       listCategoriesUseCase.execute(),
       listStockLevelsUseCase.execute(),
@@ -71,6 +74,7 @@ export default async function ProductsPage({
       movementCountByProductId={movementCountByProductId}
       initialSearch={qParam ?? ""}
       {...(supplierIdParam !== undefined ? { initialSupplierId: supplierIdParam } : {})}
+      {...(sortParam !== undefined ? { initialSort: sortParam } : {})}
     />
   );
 }
