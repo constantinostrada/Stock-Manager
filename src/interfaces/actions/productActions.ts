@@ -18,6 +18,7 @@ import {
   updateProductUseCase,
   softDeleteProductUseCase,
   deleteProductsBulkUseCase,
+  exportProductsCsvUseCase,
 } from "@infrastructure/container";
 import {
   createProductSchema,
@@ -25,6 +26,7 @@ import {
   deleteProductSchema,
   deleteProductsBulkSchema,
   listProductsSchema,
+  exportProductsSchema,
 } from "@interfaces/validation/productSchemas";
 import { runAction, err, type ActionResult } from "@interfaces/actions/actionHelpers";
 import type {
@@ -33,6 +35,7 @@ import type {
 } from "@application/dtos/ProductDTO";
 import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
 import type { GetProductWithMovementsResultDTO } from "@application/use-cases/product/GetProductWithMovementsUseCase";
+import type { ExportProductsCsvResultDTO } from "@application/use-cases/product/ExportProductsCsvUseCase";
 
 export async function createProduct(
   rawInput: unknown,
@@ -120,6 +123,16 @@ export async function deleteProduct(
     return err("Producto no encontrado", "NOT_FOUND");
   }
   return result;
+}
+
+export async function exportProducts(
+  rawInput: unknown = {},
+): Promise<ActionResult<ExportProductsCsvResultDTO>> {
+  const parsed = exportProductsSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
+  }
+  return runAction(() => exportProductsCsvUseCase.execute(parsed.data));
 }
 
 export async function deleteProductsBulk(

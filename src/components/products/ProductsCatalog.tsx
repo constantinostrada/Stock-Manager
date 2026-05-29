@@ -77,10 +77,7 @@ export function ProductsCatalog({
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
         </div>
         <div className="flex items-center gap-2">
-          <ExportProductsButton
-            products={filtered}
-            stockByProductId={stockByProductId}
-          />
+          <ExportProductsButton />
           <NewProductDialog categories={categories} suppliers={suppliers} />
         </div>
       </div>

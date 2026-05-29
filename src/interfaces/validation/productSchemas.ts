@@ -112,8 +112,21 @@ export const listProductsSchema = z.object({
   sort: productSortStringSchema.optional(),
 });
 
+/**
+ * T28 — export filters. Only q (mapped to `name`) and `sort` are honoured;
+ * page/limit are intentionally absent because the export covers the whole
+ * filtered resultset, not a single page.
+ */
+export const exportProductsSchema = z
+  .object({
+    name: z.string().optional(),
+    sort: productSortStringSchema.optional(),
+  })
+  .strip();
+
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type DeleteProductInput = z.infer<typeof deleteProductSchema>;
 export type DeleteProductsBulkInput = z.infer<typeof deleteProductsBulkSchema>;
 export type ListProductsInput = z.infer<typeof listProductsSchema>;
+export type ExportProductsInput = z.infer<typeof exportProductsSchema>;

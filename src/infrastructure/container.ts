@@ -22,6 +22,7 @@ import { GetProductUseCase } from "@application/use-cases/product/GetProductUseC
 import { GetProductBySkuUseCase } from "@application/use-cases/product/GetProductBySkuUseCase";
 import { GetProductWithMovementsUseCase } from "@application/use-cases/product/GetProductWithMovementsUseCase";
 import { ListProductsUseCase } from "@application/use-cases/product/ListProductsUseCase";
+import { ExportProductsCsvUseCase } from "@application/use-cases/product/ExportProductsCsvUseCase";
 import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProductUseCase";
 import { DeleteProductUseCase } from "@application/use-cases/product/DeleteProductUseCase";
 import { DeleteProductsBulkUseCase } from "@application/use-cases/product/DeleteProductsBulkUseCase";
@@ -68,6 +69,11 @@ export const getProductWithMovementsUseCase = new GetProductWithMovementsUseCase
 export const listProductsUseCase = new ListProductsUseCase(
   productRepository,
   categoryRepository,
+  supplierRepository,
+);
+export const exportProductsCsvUseCase = new ExportProductsCsvUseCase(
+  productRepository,
+  stockRepository,
   supplierRepository,
 );
 export const updateProductUseCase = new UpdateProductUseCase(
