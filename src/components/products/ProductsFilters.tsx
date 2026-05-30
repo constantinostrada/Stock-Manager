@@ -25,6 +25,10 @@ interface ProductsFiltersProps {
    * router.push so the listProducts action re-runs with the chosen supplierId.
    */
   initialSupplierId?: string | undefined;
+  /** T27 — current sort parsed from `?sort=` (forwarded to ProductsTable). */
+  initialSort?:
+    | { field: "name" | "price" | "stock"; direction: "asc" | "desc" }
+    | undefined;
   onFilteredChange?: (filtered: ProductDTO[]) => void;
   /** Selection state lifted up to ProductsCatalog — passed through to ProductsTable. */
   selectedSkus?: Set<string>;
@@ -57,6 +61,7 @@ export function ProductsFilters({
   movementCountByProductId = {},
   initialSearch,
   initialSupplierId,
+  initialSort,
   onFilteredChange,
   selectedSkus,
   onToggleOne,
@@ -275,6 +280,7 @@ export function ProductsFilters({
           movementCountByProductId={movementCountByProductId}
           categories={categories}
           suppliers={suppliers}
+          {...(initialSort !== undefined ? { initialSort } : {})}
           {...(selectedSkus !== undefined ? { selectedSkus } : {})}
           {...(onToggleOne !== undefined ? { onToggleOne } : {})}
           {...(onToggleAll !== undefined ? { onToggleAll } : {})}

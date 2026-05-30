@@ -67,4 +67,9 @@ export interface ListProductsInputDTO {
   categoryId?: string;
   skuContains?: string;
   supplierId?: string;
+  /** T27 — sort: server-side ORDER BY. */
+  sort?: {
+    field: "name" | "price" | "stock";
+    direction: "asc" | "desc";
+  };
 }

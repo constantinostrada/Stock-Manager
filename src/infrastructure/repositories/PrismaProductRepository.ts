@@ -75,7 +75,31 @@ export class PrismaProductRepository implements IProductRepository {
       conditions.push(`"sku" LIKE ?`);
       params.push(`%${filters.skuContains.toUpperCase()}%`);
     }
-    const sql = `SELECT * FROM "Product" WHERE ${conditions.join(" AND ")} ORDER BY "createdAt" DESC`;
+
+    // T27 — sort. Field/direction are whitelisted enums (see ProductSort), so
+    // string-interpolating them into the SQL is safe. Stock sort needs a JOIN
+    // with StockLevel so it can order by the related quantity column; for
+    // name/price we order on the Product column directly, keeping the bare
+    // (un-aliased) SQL shape so prior T26 tests still match.
+    const sort = filters.sort;
+    let sql: string;
+    if (sort && sort.field === "stock") {
+      const dir = sort.direction === "desc" ? "DESC" : "ASC";
+      const stockConditions: string[] = [`p."deletedAt" IS NULL`];
+      if (filters.name) stockConditions.push(`LOWER(p."name") LIKE LOWER(?)`);
+      if (filters.categoryId) stockConditions.push(`p."categoryId" = ?`);
+      if (filters.supplierId) stockConditions.push(`p."supplierId" = ?`);
+      if (filters.skuContains) stockConditions.push(`p."sku" LIKE ?`);
+      sql = `SELECT p.* FROM "Product" p LEFT JOIN "StockLevel" sl ON sl."productId" = p."id" WHERE ${stockConditions.join(" AND ")} ORDER BY COALESCE(sl."quantity", 0) ${dir}`;
+    } else {
+      let orderClause = `ORDER BY "createdAt" DESC`;
+      if (sort) {
+        const dir = sort.direction === "desc" ? "DESC" : "ASC";
+        if (sort.field === "name") orderClause = `ORDER BY LOWER("name") ${dir}`;
+        else if (sort.field === "price") orderClause = `ORDER BY "price" ${dir}`;
+      }
+      sql = `SELECT * FROM "Product" WHERE ${conditions.join(" AND ")} ${orderClause}`;
+    }
     const rows = await this.db.$queryRawUnsafe<ProductRow[]>(sql, ...params);
     return rows.map((r) => this.toDomain(r));
   }

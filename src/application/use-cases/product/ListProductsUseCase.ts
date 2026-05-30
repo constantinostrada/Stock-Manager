@@ -25,6 +25,7 @@ export class ListProductsUseCase {
       categoryId: dto.categoryId,
       skuContains: dto.skuContains,
       supplierId: dto.supplierId,
+      ...(dto.sort !== undefined ? { sort: dto.sort } : {}),
     });
 
     // Batch-load categories to avoid N+1

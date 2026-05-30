@@ -2,12 +2,20 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DeleteProductButton } from "@/components/products/DeleteProductButton";
 import { EditProductDialog } from "@/components/products/EditProductDialog";
 import { RegisterMovementDialog } from "@/components/stock/RegisterMovementDialog";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
+
+export type ProductSortField = "name" | "price" | "stock";
+export type ProductSortDirection = "asc" | "desc";
+export interface ProductSortState {
+  field: ProductSortField;
+  direction: ProductSortDirection;
+}
 
 interface ProductsTableProps {
   products: ProductDTO[];
@@ -20,6 +28,11 @@ interface ProductsTableProps {
   /** Supplier options for the inline EditProductDialog. */
   suppliers?: Array<{ id: string; name: string }>;
   /**
+   * T27 — current sort, parsed from `?sort=` upstream. When set, the matching
+   * header renders a chevron-up (asc) / chevron-down (desc) indicator.
+   */
+  initialSort?: ProductSortState | undefined;
+  /**
    * Selection state — when all three of selectedSkus / onToggleOne / onToggleAll
    * are provided, the table renders an extra leftmost checkbox column.
    */
@@ -28,18 +41,99 @@ interface ProductsTableProps {
   onToggleAll?: (visibleSkus: string[]) => void;
 }
 
+/**
+ * T27 — cycle the sort state for the clicked column.
+ *   none/other column → asc on the clicked column (resets the prior column)
+ *   asc on same column → desc on same column
+ *   desc on same column → none (no sort)
+ */
+export function cycleSort(
+  current: ProductSortState | null,
+  clicked: ProductSortField,
+): ProductSortState | null {
+  if (!current || current.field !== clicked) {
+    return { field: clicked, direction: "asc" };
+  }
+  if (current.direction === "asc") return { field: clicked, direction: "desc" };
+  return null;
+}
+
+export function buildSortUrl(
+  baseParams: URLSearchParams,
+  next: ProductSortState | null,
+): string {
+  const params = new URLSearchParams(baseParams.toString());
+  params.delete("sort");
+  if (next) params.set("sort", `${next.field}:${next.direction}`);
+  const qs = params.toString();
+  return qs.length > 0 ? `/products?${qs}` : "/products";
+}
+
 export function ProductsTable({
   products,
   stockByProductId = {},
   movementCountByProductId = {},
   categories = [],
   suppliers = [],
+  initialSort,
   selectedSkus,
   onToggleOne,
   onToggleAll,
 }: ProductsTableProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
+
+  const currentSort: ProductSortState | null = initialSort ?? null;
+
+  function handleSortClick(field: ProductSortField) {
+    const next = cycleSort(currentSort, field);
+    const base = searchParams ?? new URLSearchParams();
+    router.push(buildSortUrl(base, next));
+  }
+
+  function renderSortHeader(
+    field: ProductSortField,
+    label: string,
+    alignClass: string,
+  ) {
+    const active = currentSort?.field === field;
+    const direction = active ? currentSort!.direction : null;
+    return (
+      <th
+        scope="col"
+        className={`px-4 py-3 font-medium ${alignClass}`}
+        aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
+      >
+        <button
+          type="button"
+          onClick={() => handleSortClick(field)}
+          data-testid={`sort-header-${field}`}
+          data-sort-direction={active ? direction : "none"}
+          data-active={active ? "true" : "false"}
+          className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${
+            alignClass.includes("text-right") ? "justify-end" : ""
+          } ${active ? "text-foreground font-semibold" : "text-muted-foreground"}`}
+        >
+          <span>{label}</span>
+          {active && direction === "asc" && (
+            <ChevronUp
+              data-testid={`sort-chevron-up-${field}`}
+              className="h-3.5 w-3.5"
+              aria-hidden="true"
+            />
+          )}
+          {active && direction === "desc" && (
+            <ChevronDown
+              data-testid={`sort-chevron-down-${field}`}
+              className="h-3.5 w-3.5"
+              aria-hidden="true"
+            />
+          )}
+        </button>
+      </th>
+    );
+  }
 
   const selectionEnabled =
     !!selectedSkus && !!onToggleOne && !!onToggleAll;
@@ -89,12 +183,12 @@ export function ProductsTable({
                 />
               </th>
             )}
-            <th className="px-4 py-3 text-left font-medium">Product</th>
+            {renderSortHeader("name", "Nombre", "text-left")}
             <th className="px-4 py-3 text-left font-medium">SKU</th>
             <th className="px-4 py-3 text-left font-medium">Category</th>
             <th className="px-4 py-3 text-left font-medium">Proveedor</th>
-            <th className="px-4 py-3 text-right font-medium">Stock</th>
-            <th className="px-4 py-3 text-right font-medium">Price</th>
+            {renderSortHeader("stock", "Stock", "text-right")}
+            {renderSortHeader("price", "Precio", "text-right")}
             <th className="px-4 py-3 text-right font-medium">Actions</th>
           </tr>
         </thead>

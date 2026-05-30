@@ -15,6 +15,10 @@ interface ProductsCatalogProps {
   movementCountByProductId?: Record<string, number>;
   initialSearch?: string | undefined;
   initialSupplierId?: string | undefined;
+  /** T27 — current sort, parsed from `?sort=` in the URL. */
+  initialSort?:
+    | { field: "name" | "price" | "stock"; direction: "asc" | "desc" }
+    | undefined;
 }
 
 export function ProductsCatalog({
@@ -25,6 +29,7 @@ export function ProductsCatalog({
   movementCountByProductId = {},
   initialSearch,
   initialSupplierId,
+  initialSort,
 }: ProductsCatalogProps) {
   const [filtered, setFiltered] = useState<ProductDTO[]>(products);
   const [selectedSkus, setSelectedSkus] = useState<Set<string>>(
@@ -72,10 +77,7 @@ export function ProductsCatalog({
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
         </div>
         <div className="flex items-center gap-2">
-          <ExportProductsButton
-            products={filtered}
-            stockByProductId={stockByProductId}
-          />
+          <ExportProductsButton />
           <NewProductDialog categories={categories} suppliers={suppliers} />
         </div>
       </div>
@@ -88,6 +90,7 @@ export function ProductsCatalog({
         movementCountByProductId={movementCountByProductId}
         initialSearch={initialSearch}
         {...(initialSupplierId !== undefined ? { initialSupplierId } : {})}
+        {...(initialSort !== undefined ? { initialSort } : {})}
         onFilteredChange={handleFilteredChange}
         selectedSkus={selectedSkus}
         onToggleOne={handleToggleOne}
