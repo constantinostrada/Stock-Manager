@@ -124,9 +124,28 @@ export const exportProductsSchema = z
   })
   .strip();
 
+/**
+ * T29 — import payload schema. `csvText` is the raw .csv bytes (decoded to
+ * UTF-8 in the browser before being shipped to the server action). `mode`
+ * controls whether the use case previews ("dry-run") or commits the changes.
+ */
+export const importProductsSchema = z.object({
+  csvText: z
+    .string()
+    .min(1, "El archivo CSV está vacío.")
+    .max(
+      5_000_000,
+      "El archivo CSV es demasiado grande (límite: 5MB).",
+    ),
+  mode: z.enum(["dry-run", "commit"], {
+    invalid_type_error: "Modo de importación inválido.",
+  }),
+});
+
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type DeleteProductInput = z.infer<typeof deleteProductSchema>;
 export type DeleteProductsBulkInput = z.infer<typeof deleteProductsBulkSchema>;
 export type ListProductsInput = z.infer<typeof listProductsSchema>;
 export type ExportProductsInput = z.infer<typeof exportProductsSchema>;
+export type ImportProductsInput = z.infer<typeof importProductsSchema>;
