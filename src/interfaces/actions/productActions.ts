@@ -19,6 +19,7 @@ import {
   softDeleteProductUseCase,
   deleteProductsBulkUseCase,
   exportProductsCsvUseCase,
+  importProductsCsvUseCase,
 } from "@infrastructure/container";
 import {
   createProductSchema,
@@ -27,6 +28,7 @@ import {
   deleteProductsBulkSchema,
   listProductsSchema,
   exportProductsSchema,
+  importProductsSchema,
 } from "@interfaces/validation/productSchemas";
 import { runAction, err, type ActionResult } from "@interfaces/actions/actionHelpers";
 import type {
@@ -36,6 +38,7 @@ import type {
 import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
 import type { GetProductWithMovementsResultDTO } from "@application/use-cases/product/GetProductWithMovementsUseCase";
 import type { ExportProductsCsvResultDTO } from "@application/use-cases/product/ExportProductsCsvUseCase";
+import type { ImportProductsCsvResultDTO } from "@application/use-cases/product/ImportProductsCsvUseCase";
 
 export async function createProduct(
   rawInput: unknown,
@@ -133,6 +136,19 @@ export async function exportProducts(
     return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
   }
   return runAction(() => exportProductsCsvUseCase.execute(parsed.data));
+}
+
+export async function importProducts(
+  rawInput: unknown,
+): Promise<ActionResult<ImportProductsCsvResultDTO>> {
+  const parsed = importProductsSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return err(
+      parsed.error.errors.map((e) => e.message).join("; "),
+      "VALIDATION_ERROR",
+    );
+  }
+  return runAction(() => importProductsCsvUseCase.execute(parsed.data));
 }
 
 export async function deleteProductsBulk(

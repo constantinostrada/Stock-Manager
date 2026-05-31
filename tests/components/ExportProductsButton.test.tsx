@@ -30,6 +30,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@interfaces/actions/productActions", () => ({
   exportProducts: vi.fn(),
+  importProducts: vi.fn(),
   createProduct: vi.fn(),
   updateProduct: vi.fn(),
   deleteProduct: vi.fn(),

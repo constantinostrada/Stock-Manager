@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { BulkDeleteBar } from "@/components/products/BulkDeleteBar";
 import { ExportProductsButton } from "@/components/products/ExportProductsButton";
+import { ImportProductsButton } from "@/components/products/ImportProductsButton";
 import { NewProductDialog } from "@/components/products/NewProductDialog";
 import { ProductsFilters } from "@/components/products/ProductsFilters";
 import type { ProductDTO } from "@application/dtos/ProductDTO";
@@ -77,6 +78,7 @@ export function ProductsCatalog({
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
         </div>
         <div className="flex items-center gap-2">
+          <ImportProductsButton />
           <ExportProductsButton />
           <NewProductDialog categories={categories} suppliers={suppliers} />
         </div>
