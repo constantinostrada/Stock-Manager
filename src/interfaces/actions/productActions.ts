@@ -17,6 +17,9 @@ import {
   getProductWithMovementsUseCase,
   updateProductUseCase,
   softDeleteProductUseCase,
+  restoreProductUseCase,
+  hardDeleteProductUseCase,
+  getDeletedProductCountUseCase,
   deleteProductsBulkUseCase,
   exportProductsCsvUseCase,
 } from "@infrastructure/container";
@@ -24,6 +27,8 @@ import {
   createProductSchema,
   updateProductSchema,
   deleteProductSchema,
+  restoreProductSchema,
+  hardDeleteProductSchema,
   deleteProductsBulkSchema,
   listProductsSchema,
   exportProductsSchema,
@@ -133,6 +138,47 @@ export async function exportProducts(
     return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
   }
   return runAction(() => exportProductsCsvUseCase.execute(parsed.data));
+}
+
+export async function restoreProduct(
+  rawInput: unknown,
+): Promise<ActionResult<void>> {
+  const parsed = restoreProductSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
+  }
+  const result = await runAction(() => restoreProductUseCase.execute(parsed.data));
+  if (!result.success && result.code === "NOT_FOUND") {
+    return err("Producto no encontrado", "NOT_FOUND");
+  }
+  return result;
+}
+
+export async function hardDeleteProduct(
+  rawInput: unknown,
+): Promise<ActionResult<void>> {
+  const parsed = hardDeleteProductSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
+  }
+  const result = await runAction(() => hardDeleteProductUseCase.execute(parsed.data));
+  if (!result.success && result.code === "NOT_FOUND") {
+    return err("Producto no encontrado", "NOT_FOUND");
+  }
+  return result;
+}
+
+/**
+ * Returns the number of products currently in the Papelera. Used by the
+ * RootLayout to feed the Navbar's Papelera badge. Returns 0 if the use case
+ * throws — the badge is a presentation nicety, not a hard requirement.
+ */
+export async function getDeletedProductCount(): Promise<number> {
+  try {
+    return await getDeletedProductCountUseCase.execute();
+  } catch {
+    return 0;
+  }
 }
 
 export async function deleteProductsBulk(

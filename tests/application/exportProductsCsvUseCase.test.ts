@@ -71,11 +71,14 @@ function setup(opts: {
     findById: vi.fn(),
     findBySku: vi.fn(),
     findAll: vi.fn().mockResolvedValue(opts.products),
+    findAllDeleted: vi.fn(),
     save: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
     deleteManyBySkus: vi.fn(),
     softDelete: vi.fn(),
+    restore: vi.fn(),
+    countDeleted: vi.fn(),
     existsBySku: vi.fn(),
   };
   const supplierById = new Map(

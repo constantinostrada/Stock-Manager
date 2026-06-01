@@ -18,11 +18,14 @@ function makeProductRepo(): IProductRepository {
     findById: vi.fn(),
     findBySku: vi.fn(),
     findAll: vi.fn(),
+    findAllDeleted: vi.fn(),
     save: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
     deleteManyBySkus: vi.fn(),
     softDelete: vi.fn(),
+    restore: vi.fn(),
+    countDeleted: vi.fn(),
     existsBySku: vi.fn(),
   };
 }

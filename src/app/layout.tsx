@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Navbar } from "@/components/layout/Navbar";
 import { getLowStockProducts } from "@interfaces/actions/alertsActions";
+import { getDeletedProductCount } from "@interfaces/actions/productActions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,13 +18,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const lowStockCount = (await getLowStockProducts()).length;
+  const [lowStockProducts, deletedCount] = await Promise.all([
+    getLowStockProducts(),
+    getDeletedProductCount(),
+  ]);
+  const lowStockCount = lowStockProducts.length;
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <div className="min-h-screen bg-background">
-          <Navbar lowStockCount={lowStockCount} />
+          <Navbar lowStockCount={lowStockCount} deletedCount={deletedCount} />
           <main className="container mx-auto px-4 py-8">{children}</main>
         </div>
         <Toaster />
