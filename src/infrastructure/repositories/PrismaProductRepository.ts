@@ -104,6 +104,15 @@ export class PrismaProductRepository implements IProductRepository {
     return rows.map((r) => this.toDomain(r));
   }
 
+  async findAllDeleted(): Promise<Product[]> {
+    // Papelera listing. Raw SQL for the same reason `findAll` uses raw SQL:
+    // the cached `@prisma/client` may not yet know `deletedAt`.
+    const rows = await this.db.$queryRaw<ProductRow[]>`
+      SELECT * FROM "Product" WHERE "deletedAt" IS NOT NULL ORDER BY "deletedAt" DESC
+    `;
+    return rows.map((r) => this.toDomain(r));
+  }
+
   async save(product: Product): Promise<Product> {
     const row = await this.db.product.create({
       data: this.toPersistence(product),
@@ -151,6 +160,24 @@ export class PrismaProductRepository implements IProductRepository {
     await this.db.$executeRaw`
       UPDATE "Product" SET "deletedAt" = ${now}, "updatedAt" = ${now} WHERE "id" = ${id}
     `;
+  }
+
+  async restore(id: string): Promise<void> {
+    // Raw UPDATE: clears the tombstone and refreshes updatedAt.
+    const now = new Date();
+    await this.db.$executeRaw`
+      UPDATE "Product" SET "deletedAt" = NULL, "updatedAt" = ${now} WHERE "id" = ${id}
+    `;
+  }
+
+  async countDeleted(): Promise<number> {
+    // Raw COUNT so the predicate runs without going through the cached client's
+    // schema validator. SQLite returns BigInt for COUNT(*); coerce to number.
+    const rows = await this.db.$queryRaw<Array<{ count: number | bigint }>>`
+      SELECT COUNT(*) as count FROM "Product" WHERE "deletedAt" IS NOT NULL
+    `;
+    const raw = rows[0]?.count ?? 0;
+    return typeof raw === "bigint" ? Number(raw) : raw;
   }
 
   async existsBySku(sku: string, excludeId?: string): Promise<boolean> {

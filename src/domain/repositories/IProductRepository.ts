@@ -29,6 +29,11 @@ export interface IProductRepository {
   findById(id: string): Promise<Product | null>;
   findBySku(sku: string): Promise<Product | null>;
   findAll(filters?: ProductFilters): Promise<Product[]>;
+  /**
+   * Returns all soft-deleted products (deletedAt IS NOT NULL), sorted by
+   * `deletedAt DESC` (most recently deleted first). Used by the Papelera page.
+   */
+  findAllDeleted(): Promise<Product[]>;
   save(product: Product): Promise<Product>;
   update(product: Product): Promise<Product>;
   delete(id: string): Promise<void>;
@@ -43,5 +48,16 @@ export interface IProductRepository {
    * stock levels — soft-delete preserves the historical audit trail.
    */
   softDelete(id: string): Promise<void>;
+  /**
+   * Clears the soft-delete tombstone (sets `deletedAt = NULL` and refreshes
+   * `updatedAt = now()`). Counterpart of `softDelete`. Idempotent at the SQL
+   * level — calling it on an already-active row is a no-op.
+   */
+  restore(id: string): Promise<void>;
+  /**
+   * Returns the number of products whose `deletedAt` is not null. Used by the
+   * Papelera badge in the navbar.
+   */
+  countDeleted(): Promise<number>;
   existsBySku(sku: string, excludeId?: string): Promise<boolean>;
 }

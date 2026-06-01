@@ -27,6 +27,10 @@ import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProdu
 import { DeleteProductUseCase } from "@application/use-cases/product/DeleteProductUseCase";
 import { DeleteProductsBulkUseCase } from "@application/use-cases/product/DeleteProductsBulkUseCase";
 import { SoftDeleteProductUseCase } from "@application/use-cases/product/SoftDeleteProductUseCase";
+import { RestoreProductUseCase } from "@application/use-cases/product/RestoreProductUseCase";
+import { HardDeleteProductUseCase } from "@application/use-cases/product/HardDeleteProductUseCase";
+import { ListDeletedProductsUseCase } from "@application/use-cases/product/ListDeletedProductsUseCase";
+import { GetDeletedProductCountUseCase } from "@application/use-cases/product/GetDeletedProductCountUseCase";
 import { AdjustStockUseCase } from "@application/use-cases/stock/AdjustStockUseCase";
 import { GetStockLevelUseCase } from "@application/use-cases/stock/GetStockLevelUseCase";
 import { ListStockLevelsUseCase } from "@application/use-cases/stock/ListStockLevelsUseCase";
@@ -83,6 +87,18 @@ export const updateProductUseCase = new UpdateProductUseCase(
 );
 export const deleteProductUseCase = new DeleteProductUseCase(productRepository);
 export const softDeleteProductUseCase = new SoftDeleteProductUseCase(
+  productRepository,
+);
+export const restoreProductUseCase = new RestoreProductUseCase(productRepository);
+export const hardDeleteProductUseCase = new HardDeleteProductUseCase(
+  productRepository,
+);
+export const listDeletedProductsUseCase = new ListDeletedProductsUseCase(
+  productRepository,
+  categoryRepository,
+  supplierRepository,
+);
+export const getDeletedProductCountUseCase = new GetDeletedProductCountUseCase(
   productRepository,
 );
 export const deleteProductsBulkUseCase = new DeleteProductsBulkUseCase(
