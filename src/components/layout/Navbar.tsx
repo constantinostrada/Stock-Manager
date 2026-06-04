@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Package2 } from "lucide-react";
 import { NavbarSearch } from "@/components/layout/NavbarSearch";
 
-type LinkId = "inventory" | "trash" | "alerts";
+type LinkId = "inventory" | "trash" | "alerts" | "reports";
 
 const navLinks: Array<{ href: string; label: string; id?: LinkId }> = [
   { href: "/", label: "Dashboard" },
@@ -10,6 +10,7 @@ const navLinks: Array<{ href: string; label: string; id?: LinkId }> = [
   { href: "/products", label: "Products" },
   { href: "/stock", label: "Stock Levels" },
   { href: "/stock/movements", label: "Movements" },
+  { href: "/reports/valuation", label: "Reports", id: "reports" },
   { href: "/products/trash", label: "Papelera", id: "trash" },
   { href: "/alerts", label: "Alertas", id: "alerts" },
 ];
@@ -40,13 +41,16 @@ export function Navbar({
               const isAlerts = link.id === "alerts";
               const isInventory = link.id === "inventory";
               const isTrash = link.id === "trash";
+              const isReports = link.id === "reports";
               const testId = isAlerts
                 ? "nav-link-alerts"
                 : isInventory
                   ? "nav-link-inventory"
                   : isTrash
                     ? "nav-link-trash"
-                    : undefined;
+                    : isReports
+                      ? "nav-link-reports"
+                      : undefined;
               return (
                 <Link
                   key={link.href}

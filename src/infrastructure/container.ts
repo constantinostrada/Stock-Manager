@@ -46,6 +46,7 @@ import { ListSuppliersUseCase } from "@application/use-cases/supplier/ListSuppli
 import { UpdateSupplierUseCase } from "@application/use-cases/supplier/UpdateSupplierUseCase";
 import { DeleteSupplierUseCase } from "@application/use-cases/supplier/DeleteSupplierUseCase";
 import { GetInventoryDashboardUseCase } from "@application/use-cases/dashboard/GetInventoryDashboardUseCase";
+import { GetInventoryValuationReportUseCase } from "@application/use-cases/reports/GetInventoryValuationReportUseCase";
 
 // ─── Instantiate repositories ─────────────────────────────────────────────────
 const productRepository = new PrismaProductRepository(prisma);
@@ -135,3 +136,11 @@ export const getInventoryDashboardUseCase = new GetInventoryDashboardUseCase(
   productRepository,
   stockRepository,
 );
+
+export const getInventoryValuationReportUseCase =
+  new GetInventoryValuationReportUseCase(
+    productRepository,
+    stockRepository,
+    categoryRepository,
+    supplierRepository,
+  );
