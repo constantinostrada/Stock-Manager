@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   description: "Production-ready inventory and stock management system.",
 };
 
+// Runs before paint so the correct theme class is on <html> from the first frame.
+// Explicit choice in localStorage wins; otherwise follow the OS preference.
+const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -26,6 +30,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={inter.className}>
         <div className="min-h-screen bg-background">
           <Navbar lowStockCount={lowStockCount} deletedCount={deletedCount} />

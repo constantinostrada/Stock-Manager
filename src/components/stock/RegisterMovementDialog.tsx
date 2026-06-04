@@ -62,8 +62,8 @@ export function RegisterMovementDialog({
     ? `entrada-trigger-${productId}`
     : `salida-trigger-${productId}`;
   const triggerClass = isEntrada
-    ? "border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-    : "border-rose-300 text-rose-700 hover:bg-rose-50 hover:text-rose-800";
+    ? "border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-500/40 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
+    : "border-rose-300 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:border-rose-500/40 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300";
 
   function resetForm() {
     setCantidad("");
