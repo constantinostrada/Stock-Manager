@@ -132,6 +132,30 @@ export const exportProductsSchema = z
   })
   .strip();
 
+/**
+ * CSV import — structural validation only. Cells travel as raw strings; the
+ * semantic per-row validation (SKU format, duplicates, unknown category…)
+ * happens in ImportProductsUseCase so the preview can flag individual rows
+ * instead of rejecting the whole payload.
+ */
+export const importProductRowSchema = z.object({
+  rowNumber: z.number().int().min(1),
+  name: z.string().max(500),
+  sku: z.string().max(100),
+  price: z.string().max(50),
+  categoryName: z.string().max(200).default(""),
+  supplierName: z.string().max(200).default(""),
+  stock: z.string().max(50).default(""),
+  minStock: z.string().max(50).default(""),
+});
+
+export const importProductsSchema = z.object({
+  rows: z
+    .array(importProductRowSchema)
+    .min(1, "El archivo no contiene filas para importar.")
+    .max(1000, "El archivo no puede superar las 1000 filas."),
+});
+
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type DeleteProductInput = z.infer<typeof deleteProductSchema>;
@@ -140,3 +164,4 @@ export type HardDeleteProductInput = z.infer<typeof hardDeleteProductSchema>;
 export type DeleteProductsBulkInput = z.infer<typeof deleteProductsBulkSchema>;
 export type ListProductsInput = z.infer<typeof listProductsSchema>;
 export type ExportProductsInput = z.infer<typeof exportProductsSchema>;
+export type ImportProductsInput = z.infer<typeof importProductsSchema>;

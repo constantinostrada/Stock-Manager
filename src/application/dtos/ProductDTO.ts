@@ -62,6 +62,43 @@ export interface GetProductInputDTO {
   id: string;
 }
 
+/**
+ * One raw row from an uploaded products CSV. All cells arrive as strings —
+ * the import use case is responsible for coercing/validating them so it can
+ * report per-row errors instead of rejecting the whole file.
+ */
+export interface ImportProductRowInputDTO {
+  /** 1-based line number in the original file (header is row 1). */
+  rowNumber: number;
+  name: string;
+  sku: string;
+  price: string;
+  categoryName: string;
+  supplierName: string;
+  stock: string;
+  minStock: string;
+}
+
+export interface ImportProductsInputDTO {
+  rows: ImportProductRowInputDTO[];
+  /** When true, validate only — nothing is written. Used by the preview. */
+  dryRun?: boolean;
+}
+
+export interface ImportProductRowResultDTO extends ImportProductRowInputDTO {
+  valid: boolean;
+  /** Human-readable validation errors. Empty when `valid` is true. */
+  errors: string[];
+}
+
+export interface ImportProductsResultDTO {
+  rows: ImportProductRowResultDTO[];
+  validCount: number;
+  errorCount: number;
+  /** Number of products actually persisted (always 0 on dry runs). */
+  createdCount: number;
+}
+
 export interface ListProductsInputDTO {
   name?: string;
   categoryId?: string;
