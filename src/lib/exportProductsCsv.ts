@@ -1,5 +1,6 @@
 /**
- * Pure CSV utilities for the /products export (T28).
+ * Pure CSV utilities for the /products export (T28, extended by the CSV
+ * import/export task with SKU, Categoría and Stock mínimo columns).
  *
  * Builds an RFC 4180-compliant CSV with a UTF-8 BOM so Excel opens it with
  * accents intact. Filename uses local time (with HHmm) so concurrent exports
@@ -9,9 +10,12 @@
 
 export const CSV_HEADER = [
   "Nombre",
+  "SKU",
   "Precio",
-  "Stock",
+  "Categoría",
   "Proveedor",
+  "Stock",
+  "Stock mínimo",
   "Creado",
 ] as const;
 
@@ -19,9 +23,12 @@ export const CSV_BOM = "﻿";
 
 export interface ExportProductCsvRow {
   name: string;
+  sku: string;
   price: number;
-  stock: number;
+  categoryName: string | null;
   supplierName: string | null;
+  stock: number;
+  minStock: number;
   createdAt: string;
 }
 
@@ -42,9 +49,12 @@ export function buildProductsCsv(rows: ExportProductCsvRow[]): string {
   const rowLines = rows.map((r) =>
     [
       escapeCsvCell(r.name),
+      escapeCsvCell(r.sku),
       escapeCsvCell(formatPrice(r.price)),
-      escapeCsvCell(r.stock),
+      escapeCsvCell(r.categoryName ?? ""),
       escapeCsvCell(r.supplierName ?? ""),
+      escapeCsvCell(r.stock),
+      escapeCsvCell(r.minStock),
       escapeCsvCell(r.createdAt),
     ].join(","),
   );

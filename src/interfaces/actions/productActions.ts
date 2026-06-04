@@ -22,6 +22,7 @@ import {
   getDeletedProductCountUseCase,
   deleteProductsBulkUseCase,
   exportProductsCsvUseCase,
+  importProductsUseCase,
 } from "@infrastructure/container";
 import {
   createProductSchema,
@@ -32,11 +33,13 @@ import {
   deleteProductsBulkSchema,
   listProductsSchema,
   exportProductsSchema,
+  importProductsSchema,
 } from "@interfaces/validation/productSchemas";
 import { runAction, err, type ActionResult } from "@interfaces/actions/actionHelpers";
 import type {
   ProductDTO,
   DeleteProductsBulkResultDTO,
+  ImportProductsResultDTO,
 } from "@application/dtos/ProductDTO";
 import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
 import type { GetProductWithMovementsResultDTO } from "@application/use-cases/product/GetProductWithMovementsUseCase";
@@ -138,6 +141,39 @@ export async function exportProducts(
     return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
   }
   return runAction(() => exportProductsCsvUseCase.execute(parsed.data));
+}
+
+/**
+ * Dry-run validation of a parsed CSV: returns per-row verdicts (duplicate
+ * SKU, missing name, unknown category…) without writing anything. Feeds the
+ * import dialog's preview table.
+ */
+export async function previewProductsImport(
+  rawInput: unknown,
+): Promise<ActionResult<ImportProductsResultDTO>> {
+  const parsed = importProductsSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
+  }
+  return runAction(() =>
+    importProductsUseCase.execute({ rows: parsed.data.rows, dryRun: true }),
+  );
+}
+
+/**
+ * Commits the import: re-validates every row server-side, creates the valid
+ * products (with their initial stock level) and skips the rest.
+ */
+export async function importProducts(
+  rawInput: unknown,
+): Promise<ActionResult<ImportProductsResultDTO>> {
+  const parsed = importProductsSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return err(parsed.error.errors.map((e) => e.message).join("; "), "VALIDATION_ERROR");
+  }
+  return runAction(() =>
+    importProductsUseCase.execute({ rows: parsed.data.rows, dryRun: false }),
+  );
 }
 
 export async function restoreProduct(
