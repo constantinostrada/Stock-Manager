@@ -29,6 +29,7 @@ model Product {
 
   stockMovements StockMovement[]
   stockLevel     StockLevel?
+  priceHistory   PriceHistory[]
 
   @@index([sku])
   @@index([categoryId])
@@ -73,6 +74,22 @@ model Supplier {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ─── Price History ────────────────────────────────────────────────────────────
+
+model PriceHistory {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  oldPrice Float
+  newPrice Float
+
+  changedAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([changedAt])
 }
 
 // ─── Stock Movements ─────────────────────────────────────────────────────────

@@ -15,10 +15,16 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 const getProductWithMovementsMock = vi.fn();
+const getProductPriceHistoryMock = vi.fn(async () => ({
+  success: true,
+  data: { entries: [] },
+}));
 
 vi.mock("@interfaces/actions/productActions", () => ({
   getProductWithMovements: (...args: unknown[]) =>
     getProductWithMovementsMock(...args),
+  getProductPriceHistory: (...args: unknown[]) =>
+    getProductPriceHistoryMock(...args),
 }));
 
 const notFoundMock = vi.fn(() => {
