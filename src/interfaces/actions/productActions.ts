@@ -15,6 +15,7 @@ import {
   getProductUseCase,
   getProductBySkuUseCase,
   getProductWithMovementsUseCase,
+  getProductPriceHistoryUseCase,
   updateProductUseCase,
   softDeleteProductUseCase,
   restoreProductUseCase,
@@ -40,6 +41,7 @@ import type {
 } from "@application/dtos/ProductDTO";
 import type { GetProductBySkuResultDTO } from "@application/use-cases/product/GetProductBySkuUseCase";
 import type { GetProductWithMovementsResultDTO } from "@application/use-cases/product/GetProductWithMovementsUseCase";
+import type { GetProductPriceHistoryResultDTO } from "@application/dtos/PriceHistoryDTO";
 import type { ExportProductsCsvResultDTO } from "@application/use-cases/product/ExportProductsCsvUseCase";
 
 export async function createProduct(
@@ -96,6 +98,12 @@ export async function getProductWithMovements(
   return runAction(() =>
     getProductWithMovementsUseCase.execute({ product_id: productId, page, limit }),
   );
+}
+
+export async function getProductPriceHistory(
+  productId: string,
+): Promise<ActionResult<GetProductPriceHistoryResultDTO>> {
+  return runAction(() => getProductPriceHistoryUseCase.execute({ productId }));
 }
 
 export async function updateProduct(

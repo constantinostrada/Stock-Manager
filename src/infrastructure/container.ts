@@ -15,12 +15,14 @@ import { PrismaProductRepository } from "@infrastructure/repositories/PrismaProd
 import { PrismaStockRepository } from "@infrastructure/repositories/PrismaStockRepository";
 import { PrismaCategoryRepository } from "@infrastructure/repositories/PrismaCategoryRepository";
 import { PrismaSupplierRepository } from "@infrastructure/repositories/PrismaSupplierRepository";
+import { PrismaPriceHistoryRepository } from "@infrastructure/repositories/PrismaPriceHistoryRepository";
 
 // ─── Use cases ───────────────────────────────────────────────────────────────
 import { CreateProductUseCase } from "@application/use-cases/product/CreateProductUseCase";
 import { GetProductUseCase } from "@application/use-cases/product/GetProductUseCase";
 import { GetProductBySkuUseCase } from "@application/use-cases/product/GetProductBySkuUseCase";
 import { GetProductWithMovementsUseCase } from "@application/use-cases/product/GetProductWithMovementsUseCase";
+import { GetProductPriceHistoryUseCase } from "@application/use-cases/product/GetProductPriceHistoryUseCase";
 import { ListProductsUseCase } from "@application/use-cases/product/ListProductsUseCase";
 import { ExportProductsCsvUseCase } from "@application/use-cases/product/ExportProductsCsvUseCase";
 import { UpdateProductUseCase } from "@application/use-cases/product/UpdateProductUseCase";
@@ -50,6 +52,7 @@ const productRepository = new PrismaProductRepository(prisma);
 const stockRepository = new PrismaStockRepository(prisma);
 const categoryRepository = new PrismaCategoryRepository(prisma);
 const supplierRepository = new PrismaSupplierRepository(prisma);
+const priceHistoryRepository = new PrismaPriceHistoryRepository(prisma);
 
 // ─── Instantiate use cases (exported for use in interfaces/) ──────────────────
 export const createProductUseCase = new CreateProductUseCase(
@@ -84,6 +87,11 @@ export const updateProductUseCase = new UpdateProductUseCase(
   productRepository,
   categoryRepository,
   supplierRepository,
+  priceHistoryRepository,
+);
+export const getProductPriceHistoryUseCase = new GetProductPriceHistoryUseCase(
+  productRepository,
+  priceHistoryRepository,
 );
 export const deleteProductUseCase = new DeleteProductUseCase(productRepository);
 export const softDeleteProductUseCase = new SoftDeleteProductUseCase(

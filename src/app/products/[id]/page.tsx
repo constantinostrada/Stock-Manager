@@ -16,7 +16,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MovementsHistoryTable } from "@/components/stock/MovementsHistoryTable";
-import { getProductWithMovements } from "@interfaces/actions/productActions";
+import { PriceHistoryCard } from "@/components/products/PriceHistoryCard";
+import {
+  getProductWithMovements,
+  getProductPriceHistory,
+} from "@interfaces/actions/productActions";
 import { LOW_STOCK_THRESHOLD } from "@interfaces/dashboard/constants";
 
 interface ProductDetailPageProps {
@@ -52,6 +56,11 @@ export default async function ProductDetailPage({
 
   const result = await getProductWithMovements(id, page, limit);
   if (!result.success) return notFound();
+
+  const priceHistoryResult = await getProductPriceHistory(id);
+  const priceHistory = priceHistoryResult.success
+    ? priceHistoryResult.data.entries
+    : [];
 
   const { product, stockLevel, movements, total_movements } = result.data;
   const stockActual = stockLevel?.quantity ?? 0;
@@ -238,6 +247,8 @@ export default async function ProductDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <PriceHistoryCard entries={priceHistory} currency={product.currency} />
     </div>
   );
 }
