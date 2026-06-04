@@ -128,7 +128,9 @@ export function PriceHistoryCard({ entries, currency }: PriceHistoryCardProps) {
                     </span>
                     <span
                       className={`font-medium tabular-nums ${
-                        isIncrease ? "text-red-600" : "text-emerald-600"
+                        isIncrease
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-emerald-600 dark:text-emerald-400"
                       }`}
                       data-testid="price-change-delta"
                     >

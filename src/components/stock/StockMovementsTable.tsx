@@ -9,9 +9,9 @@ interface StockMovementsTableProps {
 }
 
 const typeBadge: Record<string, { label: string; className: string }> = {
-  IN: { label: "Stock In", className: "bg-green-100 text-green-700 border-green-200" },
-  OUT: { label: "Stock Out", className: "bg-red-100 text-red-700 border-red-200" },
-  ADJUSTMENT: { label: "Adjustment", className: "bg-blue-100 text-blue-700 border-blue-200" },
+  IN: { label: "Stock In", className: "bg-green-100 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-400 dark:border-green-500/30" },
+  OUT: { label: "Stock Out", className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30" },
+  ADJUSTMENT: { label: "Adjustment", className: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30" },
 };
 
 export function StockMovementsTable({

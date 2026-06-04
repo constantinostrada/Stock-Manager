@@ -41,7 +41,7 @@ export function StockLevelsTable({ stockLevels }: StockLevelsTableProps) {
                 level.isOutOfStock
                   ? "bg-destructive/5"
                   : level.isLowStock
-                    ? "bg-yellow-50"
+                    ? "bg-yellow-50 dark:bg-yellow-500/10"
                     : ""
               }`}
             >
@@ -68,7 +68,7 @@ export function StockLevelsTable({ stockLevels }: StockLevelsTableProps) {
                 {level.isOutOfStock ? (
                   <Badge variant="destructive">Out of Stock</Badge>
                 ) : level.isLowStock ? (
-                  <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                  <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-400">
                     Low Stock
                   </Badge>
                 ) : (

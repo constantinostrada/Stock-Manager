@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Package2 } from "lucide-react";
 import { NavbarSearch } from "@/components/layout/NavbarSearch";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 type LinkId = "inventory" | "trash" | "alerts" | "reports";
 
@@ -90,6 +91,7 @@ export function Navbar({
             })}
           </nav>
           <NavbarSearch />
+          <ThemeToggle />
         </div>
       </div>
     </header>
